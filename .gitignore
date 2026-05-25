@@ -24,8 +24,6 @@ ENV/
 db.sqlite3
 db.sqlite3-journal
 media/
-staticfiles/
-static/
 
 # Pytest / coverage
 .pytest_cache/
@@ -45,3 +43,4 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+.claude
