@@ -1,0 +1,82 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block title %}Auditoría · Gestor Horarios UCJC{% endblock %}
+
+{% block page_title %}Registro de auditoría{% endblock %}
+{% block page_subtitle %}RNF-06 / RNF-14 — Registro inalterable de todas las acciones del sistema{% endblock %}
+
+{% block page_content %}
+
+<!-- Filtros -->
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-end">
+  <form method="get" class="flex flex-wrap gap-3 items-end">
+    <div>
+      <label class="block text-xs text-zinc-500 mb-1">Severidad</label>
+      <select name="severidad" class="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-600">
+        <option value="">Todas</option>
+        {% for val, label in severidades %}
+        <option value="{{ val }}" {% if severidad_filter == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs text-zinc-500 mb-1">Modelo</label>
+      <input type="text" name="modelo" value="{{ modelo_filter }}"
+             placeholder="Horario, Sesion…"
+             class="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 w-36 focus:outline-none focus:ring-1 focus:ring-red-600 placeholder:text-zinc-600">
+    </div>
+    <button type="submit" class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition-colors">Filtrar</button>
+    <a href="{% url 'schedule:audit' %}" class="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors">Limpiar</a>
+  </form>
+</div>
+
+<!-- Tabla de auditoría -->
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+  {% if logs %}
+  <table class="w-full text-xs">
+    <thead>
+      <tr class="border-b border-zinc-800">
+        <th class="px-4 py-3 text-left font-semibold text-zinc-500 uppercase tracking-wider">Timestamp</th>
+        <th class="px-4 py-3 text-left font-semibold text-zinc-500 uppercase tracking-wider">Usuario</th>
+        <th class="px-4 py-3 text-left font-semibold text-zinc-500 uppercase tracking-wider">Acción</th>
+        <th class="px-4 py-3 text-left font-semibold text-zinc-500 uppercase tracking-wider">Modelo</th>
+        <th class="px-4 py-3 text-left font-semibold text-zinc-500 uppercase tracking-wider">Severidad</th>
+        <th class="px-4 py-3 text-left font-semibold text-zinc-500 uppercase tracking-wider">Descripción</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-zinc-800">
+      {% for log in logs %}
+      <tr class="hover:bg-zinc-800/30 transition-colors">
+        <td class="px-4 py-3 font-mono text-zinc-500 whitespace-nowrap">{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
+        <td class="px-4 py-3 text-zinc-300">{{ log.usuario.get_full_name|default:log.usuario.email|truncatechars:20 }}</td>
+        <td class="px-4 py-3">
+          <span class="font-mono text-xs
+            {% if log.accion == 'CREACION' %}text-green-400
+            {% elif log.accion == 'BORRADO' %}text-red-400
+            {% elif log.accion == 'MODIFICACION' %}text-amber-400
+            {% elif log.accion == 'ESTADO' %}text-blue-400
+            {% else %}text-zinc-400{% endif %}">
+            {{ log.accion }}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-zinc-400 font-mono">{{ log.modelo_afectado }}{% if log.objeto_id %} #{{ log.objeto_id }}{% endif %}</td>
+        <td class="px-4 py-3">
+          {% if log.severidad == 'ERROR' %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/30 text-red-300 border border-red-700/40">ERROR</span>
+          {% elif log.severidad == 'WARN' %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-900/30 text-amber-300 border border-amber-700/40">WARN</span>
+          {% else %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">INFO</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-zinc-400 max-w-xs truncate">{{ log.descripcion }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="py-12 text-center text-zinc-500 text-sm">No hay entradas de auditoría.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

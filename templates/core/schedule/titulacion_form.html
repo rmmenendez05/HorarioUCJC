@@ -1,0 +1,65 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block title %}{{ accion }} titulación · Gestor Horarios UCJC{% endblock %}
+{% block page_title %}{{ accion }} titulación{% endblock %}
+{% block page_subtitle %}{% if tit %}Editando: {{ tit.nombre }}{% else %}Nueva titulación para la Escuela Politécnica{% endif %}{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-lg">
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="block text-xs font-medium text-zinc-400 mb-2">Nombre oficial</label>
+          {{ form.nombre }}
+          {% if form.nombre.errors %}<p class="mt-1 text-xs text-red-400">{{ form.nombre.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-2">Código</label>
+          {{ form.codigo }}
+          {% if form.codigo.errors %}<p class="mt-1 text-xs text-red-400">{{ form.codigo.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-2">Tipo</label>
+          {{ form.tipo }}
+          {% if form.tipo.errors %}<p class="mt-1 text-xs text-red-400">{{ form.tipo.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-2">Duración (años)</label>
+          {{ form.duracion_anios }}
+          {% if form.duracion_anios.errors %}<p class="mt-1 text-xs text-red-400">{{ form.duracion_anios.errors.0 }}</p>{% endif %}
+          <p class="mt-1 text-xs text-zinc-600">Se crean automáticamente los niveles 1º…nº</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6 pt-1">
+        <label class="flex items-center gap-2 cursor-pointer">
+          {{ form.permite_maniana }}
+          <span class="text-sm text-zinc-300">Permite turno mañana</span>
+          <span class="text-xs text-zinc-600">(solo Doble Grado)</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          {{ form.activa }}
+          <span class="text-sm text-zinc-300">Titulación activa</span>
+        </label>
+      </div>
+
+      <div class="pt-2 flex items-center gap-3 border-t border-zinc-800">
+        <button type="submit"
+                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+          {{ accion }} titulación
+        </button>
+        <a href="{% if tit %}{% url 'schedule:titulacion_detalle' tit.pk %}{% else %}{% url 'schedule:curriculum' %}{% endif %}"
+           class="px-5 py-2.5 text-zinc-400 hover:text-white text-sm transition-colors">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

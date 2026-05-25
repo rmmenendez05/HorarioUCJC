@@ -1,0 +1,159 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block title %}Nuevo horario · Gestor Horarios UCJC{% endblock %}
+
+{% block page_title %}Nuevo horario{% endblock %}
+{% block page_subtitle %}Crea un horario base para una titulación y nivel{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'schedule:horarios_list' %}"
+   class="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors">← Volver</a>
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-2xl mx-auto">
+
+  <!-- Cabecera explicativa -->
+  <div class="flex items-start gap-4 mb-8">
+    <div class="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-600/30 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <div>
+      <h2 class="text-base font-semibold text-white mb-1">Configurar nuevo horario</h2>
+      <p class="text-sm text-zinc-500 leading-relaxed">
+        Selecciona la titulación, el año del plan de estudios y el curso académico.
+        Una vez creado podrás configurar las franjas y generar el horario automáticamente.
+      </p>
+    </div>
+  </div>
+
+  <!-- Stepper de pasos -->
+  <div class="flex items-center gap-0 mb-8">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-xs font-bold text-white">1</div>
+      <span class="text-sm font-medium text-white">Datos básicos</span>
+    </div>
+    <div class="flex-1 mx-4 h-px bg-zinc-700 max-w-16"></div>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-500">2</div>
+      <span class="text-sm text-zinc-500">Restricciones</span>
+    </div>
+    <div class="flex-1 mx-4 h-px bg-zinc-700 max-w-16"></div>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-500">3</div>
+      <span class="text-sm text-zinc-500">Configuración</span>
+    </div>
+    <div class="flex-1 mx-4 h-px bg-zinc-700 max-w-16"></div>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-500">4</div>
+      <span class="text-sm text-zinc-500">Resultado</span>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="space-y-4">
+
+      <!-- Titulación -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 transition-colors hover:border-zinc-700">
+        <div class="flex items-start gap-4">
+          <div class="w-9 h-9 rounded-xl bg-red-600/15 border border-red-600/20 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4.5 h-4.5 text-red-400" fill="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px">
+              <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <label class="block text-sm font-semibold text-white mb-0.5">Titulación</label>
+            <p class="text-xs text-zinc-500 mb-3">Grado o máster al que pertenece este horario</p>
+            {{ form.titulacion }}
+            {% if form.titulacion.errors %}
+            <p class="mt-2 text-xs text-red-400 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              {{ form.titulacion.errors.0 }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Nivel -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 transition-colors hover:border-zinc-700">
+        <div class="flex items-start gap-4">
+          <div class="w-9 h-9 rounded-xl bg-blue-600/15 border border-blue-600/20 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4.5 h-4.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <label class="block text-sm font-semibold text-white mb-0.5">Año del plan de estudios</label>
+            <p class="text-xs text-zinc-500 mb-3">Curso dentro de la titulación (1º, 2º, 3º…)</p>
+            {{ form.nivel }}
+            {% if form.nivel.errors %}
+            <p class="mt-2 text-xs text-red-400 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              {{ form.nivel.errors.0 }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Curso académico -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 transition-colors hover:border-zinc-700">
+        <div class="flex items-start gap-4">
+          <div class="w-9 h-9 rounded-xl bg-amber-600/15 border border-amber-600/20 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4.5 h-4.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <label class="block text-sm font-semibold text-white mb-0.5">Curso académico</label>
+            <p class="text-xs text-zinc-500 mb-3">Año lectivo para el que se genera este horario (ej. 2025-2026)</p>
+            {{ form.curso_academico }}
+            {% if form.curso_academico.errors %}
+            <p class="mt-2 text-xs text-red-400 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              {{ form.curso_academico.errors.0 }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Nota informativa -->
+    <div class="mt-5 flex items-start gap-3 px-4 py-3 bg-zinc-900/60 border border-zinc-800/60 rounded-xl">
+      <svg class="w-4 h-4 text-zinc-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-xs text-zinc-600 leading-relaxed">
+        El horario se creará en estado <strong class="text-zinc-500">Borrador</strong>.
+        A continuación podrás configurar las franjas horarias y lanzar la generación automática con el motor de Algoritmo Genético.
+      </p>
+    </div>
+
+    <!-- Acciones -->
+    <div class="mt-6 flex items-center gap-3">
+      <button type="submit"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-red-900/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Crear horario
+      </button>
+      <a href="{% url 'schedule:horarios_list' %}"
+         class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium rounded-xl transition-colors">
+        Cancelar
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

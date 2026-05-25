@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.ucjc.edu)",
+      "WebFetch(domain:calidad.ucjc.edu)",
+      "Bash(python manage.py seed_politecnica)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Proyectos\\\\HorarioUCJC\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(.venv/Scripts/python.exe manage.py shell -c \"from login.models import Usuario; users = list\\(Usuario.objects.filter\\(last_name__icontains='romendez'\\) | Usuario.objects.filter\\(email__icontains='romendez'\\)\\); print\\([\\(u.pk, u.email, u.first_name, u.last_name, u.rol\\) for u in users]\\)\")"
+    ]
+  }
+}

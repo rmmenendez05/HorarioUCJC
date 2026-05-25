@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@source "../../../**/*.{html,py,js}";
+
+@theme {
+    /* Colores personalizados */
+    --color-primary: #D00000;
+    --color-secondary: #111111;
+    --color-surface: #161616;
+    --color-muted: #A1A1A1;
+
+    /* Tipografía */
+    --font-headline: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+
+    /* Tamaños custom */
+    --text-hero: 3.5rem;
+    --line-height-hero: 1.1;
+}
+
+@layer base {
+    body {
+        background-color: var(--color-secondary);
+        color: white;
+        font-family: var(--font-body);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-headline);
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0px 1000px #18181b inset;
+        -webkit-text-fill-color: #ffffff;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+}
+
+@layer components {
+    .wave-bg {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background: #000;
+        overflow: hidden;
+    }
+
+    .wave-bg canvas {
+        width: 100%;
+        height: 100%;
+    }
+}

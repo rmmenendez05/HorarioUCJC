@@ -1,0 +1,209 @@
+{% extends "core/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios — Gestor Horarios UCJC{% endblock %}
+{% block page_title %}Gestión de usuarios{% endblock %}
+{% block page_subtitle %}Administrar roles y accesos al sistema{% endblock %}
+
+{% block page_content %}
+
+<!-- Data island for client-side search -->
+<script>window.USER_SEARCH_DATA = {{ search_data_json }};</script>
+
+<div class="space-y-6">
+
+  <!-- Stats por rol -->
+  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-2">Total</div>
+      <div class="text-2xl font-bold text-white">{{ stats.total }}</div>
+      <div class="text-xs text-zinc-600 mt-1">Usuarios registrados</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-2">Decanos</div>
+      <div class="text-2xl font-bold text-red-400">{{ stats.decanos }}</div>
+      <div class="text-xs text-zinc-600 mt-1">Con permisos de escritura</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-2">Profesores</div>
+      <div class="text-2xl font-bold text-blue-400">{{ stats.profesores }}</div>
+      <div class="text-xs text-zinc-600 mt-1">Docentes activos</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-2">Alumnos</div>
+      <div class="text-2xl font-bold text-green-400">{{ stats.alumnos }}</div>
+      <div class="text-xs text-zinc-600 mt-1">Estudiantes matriculados</div>
+    </div>
+  </div>
+
+  <!-- Tabla de usuarios -->
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+
+    <!-- Header + barra de búsqueda -->
+    <div class="px-6 py-4 border-b border-zinc-800">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-white">Todos los usuarios</h2>
+        <div class="flex items-center gap-2">
+          <span id="user-search-count" class="hidden text-xs text-zinc-500 bg-zinc-800 px-2.5 py-1 rounded-full"></span>
+          <span class="text-xs text-zinc-500">{{ users|length }} usuario{{ users|length|pluralize:"s" }}</span>
+        </div>
+      </div>
+
+      <!-- Barra de búsqueda avanzada -->
+      <div id="user-search-wrap" class="relative">
+        <div class="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5
+                    focus-within:border-zinc-500 transition-colors">
+          <!-- Icono búsqueda -->
+          <svg class="w-4 h-4 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <!-- Input -->
+          <input id="user-search-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="Buscar por nombre, email, área, asignatura, grado…"
+                 class="flex-1 bg-transparent outline-none text-sm text-white placeholder-zinc-600 min-w-0"/>
+          <!-- Clear button -->
+          <button id="user-search-clear" title="Limpiar búsqueda"
+                  style="display:none"
+                  class="flex items-center justify-center w-5 h-5 rounded-full bg-zinc-700 hover:bg-zinc-600 text-zinc-400 hover:text-white transition-colors shrink-0">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Dropdown autocompletado -->
+        <div id="user-search-dropdown"
+             class="hidden absolute left-0 right-0 top-full mt-1.5 bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 rounded-xl shadow-2xl z-50 overflow-hidden max-h-72 overflow-y-auto">
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtro por rol -->
+    <div class="px-6 py-3 border-b border-zinc-800 flex items-center gap-2 flex-wrap">
+      <a href="{% url 'user_management' %}"
+         class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
+         {% if not rol_filter %}bg-red-600 text-white border-red-600{% else %}border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white{% endif %}">
+        Todos
+      </a>
+      {% for value, label in rol_choices %}
+      <a href="{% url 'user_management' %}?rol={{ value }}"
+         class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
+         {% if rol_filter == value %}bg-red-600 text-white border-red-600{% else %}border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white{% endif %}">
+        {{ label }}
+      </a>
+      {% endfor %}
+      <span class="ml-auto text-xs text-zinc-600 hidden sm:block">
+        Busca por nombre, email, departamento, asignatura o titulación
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-800">
+            <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-widest">Usuario</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-widest">Email</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-widest">Rol</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-widest">Estado</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-widest">Registro</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-widest">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-800/60">
+          {% for user in users %}
+          <tr class="hover:bg-zinc-800/30 transition-colors"
+              data-uid="{{ user.pk }}"
+              data-search="{{ user.get_full_name|lower }} {{ user.email|lower }} {{ user.rol|lower }}{% if user.rol == 'PROFESOR' %} {{ user.perfil_profesor.area_conocimiento|default:''|lower }}{% endif %}{% if user.rol == 'ALUMNO' %} {{ user.perfil_alumno.titulacion|default:''|lower }}{% endif %}">
+
+            <!-- Nombre -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 uppercase
+                  {% if user.rol == 'DECANO' %}bg-red-600/20 text-red-400 border border-red-600/30
+                  {% elif user.rol == 'PROFESOR' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                  {% elif user.rol == 'ALUMNO' %}bg-green-500/20 text-green-400 border border-green-500/30
+                  {% else %}bg-zinc-700 text-zinc-400 border border-zinc-600{% endif %}">
+                  {% if user.first_name %}{{ user.first_name|first }}{% if user.last_name %}{{ user.last_name|first }}{% endif %}{% else %}{{ user.email|first }}{% endif %}
+                </div>
+                <div class="min-w-0">
+                  <div class="font-medium text-white truncate">
+                    {{ user.get_full_name|default:"Sin nombre" }}
+                  </div>
+                  <div class="text-xs text-zinc-600 font-mono truncate">ID {{ user.pk }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Email -->
+            <td class="px-6 py-4 text-zinc-400 text-xs">{{ user.email }}</td>
+
+            <!-- Rol -->
+            <td class="px-6 py-4">
+              <form method="post" action="{% url 'user_update_rol' user.pk %}">
+                {% csrf_token %}
+                <select name="rol" onchange="this.form.submit()" data-cs-skip
+                        class="bg-zinc-800 border border-zinc-700 text-xs font-medium rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-red-600 transition-colors
+                        {% if user.rol == 'DECANO' %}text-red-400
+                        {% elif user.rol == 'PROFESOR' %}text-blue-400
+                        {% elif user.rol == 'ALUMNO' %}text-green-400
+                        {% else %}text-zinc-400{% endif %}"
+                        {% if user == request.user %}disabled title="No puede modificar su propio rol"{% endif %}>
+                  {% for value, label in rol_choices %}
+                  <option value="{{ value }}" {% if user.rol == value %}selected{% endif %}
+                          class="text-white bg-zinc-900">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+
+            <!-- Estado -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full {% if user.is_active %}bg-green-400{% else %}bg-zinc-600{% endif %}"></div>
+                <span class="text-xs {% if user.is_active %}text-green-400{% else %}text-zinc-600{% endif %}">
+                  {% if user.is_active %}Activo{% else %}Inactivo{% endif %}
+                </span>
+              </div>
+            </td>
+
+            <!-- Fecha registro -->
+            <td class="px-6 py-4 text-xs text-zinc-600 font-mono">
+              {{ user.date_joined|date:"d/m/Y" }}
+            </td>
+
+            <!-- Acciones extra -->
+            <td class="px-6 py-4">
+              {% if user.rol == 'ALUMNO' %}
+              <a href="{% url 'alumno_update_grado' user.pk %}"
+                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-900/30 border border-green-700/40 text-green-400 text-xs font-medium hover:bg-green-900/50 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                </svg>
+                Grado
+              </a>
+              {% endif %}
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center">
+              <div class="text-zinc-600 text-sm">No hay usuarios que coincidan con el filtro.</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/ucjc_search.js' %}"></script>
+<script src="{% static 'js/user_search.js' %}"></script>
+{% endblock %}

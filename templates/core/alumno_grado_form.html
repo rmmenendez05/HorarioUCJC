@@ -1,0 +1,119 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block title %}Titulación · {{ usuario.get_full_name }}{% endblock %}
+{% block page_title %}Asignar titulación al alumno{% endblock %}
+{% block page_subtitle %}{{ usuario.get_full_name }} · {{ usuario.email }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'user_management' %}"
+   class="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors">← Usuarios</a>
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-xl">
+
+  <!-- Cabecera del alumno -->
+  <div class="flex items-center gap-4 mb-6">
+    <div class="w-14 h-14 rounded-2xl bg-green-500/15 border border-green-500/25 flex items-center justify-center text-xl font-bold text-green-300 uppercase shrink-0">
+      {% if usuario.first_name %}{{ usuario.first_name|first }}{% if usuario.last_name %}{{ usuario.last_name|first }}{% endif %}{% else %}{{ usuario.email|first }}{% endif %}
+    </div>
+    <div>
+      <div class="text-base font-semibold text-white">{{ usuario.get_full_name|default:"Sin nombre" }}</div>
+      <div class="text-sm text-zinc-400">{{ usuario.email }}</div>
+      <div class="flex items-center gap-2 mt-1.5">
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-900/40 border border-green-600/30 text-xs text-green-400 font-medium">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
+          Alumno
+        </span>
+        {% if perfil.titulacion %}
+        <span class="text-xs text-zinc-500">
+          {{ perfil.titulacion.nombre }}{% if perfil.nivel %} · {{ perfil.nivel.anio }}º curso{% endif %}
+        </span>
+        {% else %}
+        <span class="text-xs text-zinc-600">Sin titulación asignada</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+
+    <!-- Titulación -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start gap-4">
+        <div class="w-9 h-9 rounded-xl bg-red-600/15 border border-red-600/20 flex items-center justify-center shrink-0 mt-0.5">
+          <svg class="w-4.5 h-4.5 text-red-400" fill="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px">
+            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <label class="block text-sm font-semibold text-white mb-0.5">Titulación</label>
+          <p class="text-xs text-zinc-500 mb-3">Grado o máster al que pertenece el alumno</p>
+          {{ form.titulacion }}
+          {% if form.titulacion.errors %}
+          <p class="mt-2 text-xs text-red-400">{{ form.titulacion.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Nivel -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start gap-4">
+        <div class="w-9 h-9 rounded-xl bg-blue-600/15 border border-blue-600/20 flex items-center justify-center shrink-0 mt-0.5">
+          <svg class="w-4.5 h-4.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <label class="block text-sm font-semibold text-white mb-0.5">Año del plan de estudios</label>
+          <p class="text-xs text-zinc-500 mb-3">Curso dentro de la titulación (1º, 2º, 3º…). Debe pertenecer a la titulación seleccionada.</p>
+          {{ form.nivel }}
+          {% if form.nivel.errors %}
+          <p class="mt-2 text-xs text-red-400">{{ form.nivel.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Curso académico -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start gap-4">
+        <div class="w-9 h-9 rounded-xl bg-amber-600/15 border border-amber-600/20 flex items-center justify-center shrink-0 mt-0.5">
+          <svg class="w-4.5 h-4.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <label class="block text-sm font-semibold text-white mb-0.5">Curso académico</label>
+          <p class="text-xs text-zinc-500 mb-3">Año lectivo en el que el alumno está matriculado</p>
+          {{ form.curso_academico }}
+          {% if form.curso_academico.errors %}
+          <p class="mt-2 text-xs text-red-400">{{ form.curso_academico.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-red-900/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Guardar cambios
+      </button>
+      <a href="{% url 'user_management' %}"
+         class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium rounded-xl transition-colors">
+        Cancelar
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

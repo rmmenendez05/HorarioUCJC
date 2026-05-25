@@ -1,0 +1,20 @@
+<div id="toast-container"
+     class="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 w-88 pointer-events-none">
+</div>
+
+<!-- Tailwind safelist: classes used dynamically in toast.js via string concatenation -->
+<div aria-hidden="true" class="hidden
+  border-green-500 bg-green-950/90 text-green-200 bg-green-500
+  border-red-500 bg-red-950/90 text-red-200 bg-red-500
+  border-amber-500 bg-amber-950/90 text-amber-200 bg-amber-500
+  border-zinc-600 bg-zinc-900/95 text-zinc-200 bg-zinc-500">
+</div>
+
+<style>
+  @keyframes toastIn  { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes toastOut { from { transform: translateX(0);    opacity: 1; } to { transform: translateX(110%); opacity: 0; } }
+  @keyframes shrink   { from { width: 100%; } to { width: 0%; } }
+  .toast-in  { animation: toastIn  .3s cubic-bezier(.16,1,.3,1) forwards; }
+  .toast-out { animation: toastOut .3s ease-in forwards; }
+  .toast-bar { animation: shrink 4.5s linear forwards; }
+</style>

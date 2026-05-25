@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+{% load static %}
+
+{% block title %} Autentificación {% endblock %}
+
+{% block content%}
+<div class="wave-bg">
+    <canvas id="waveCanvas"></canvas>
+</div>
+
+<div class="min-h-screen w-full px-4 py-10 sm:px-8 sm:py-16 flex flex-col gap-8 items-center justify-center">
+    <div class="flex flex-col justify-center items-center gap-4 text-center px-2">
+        <div class="text-primary w-16 h-16 sm:w-20 sm:h-20 mb-3 sm:mb-5">
+            {% include 'login/icons/calendar.svg' %}
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-black">Horario UCJC</h1>
+        <p class="text-zinc-300 font-light text-sm sm:text-base max-w-xs sm:max-w-md drop-shadow-md">Acceso al gestor de horarios de la Universidad Camilo José Cela</p>
+    </div>
+    <div class="border border-zinc-700 rounded-2xl p-6 sm:p-10 w-full max-w-sm sm:max-w-md bg-zinc-900 flex flex-col gap-6">
+        {# Formulario #}
+        {% include 'login/partials/login_form.html' %}
+
+        {# Separador #}
+        <div class="flex items-center gap-3">
+            <hr class="flex-1 border-zinc-700">
+            <span class="text-zinc-500 text-sm">o</span>
+            <hr class="flex-1 border-zinc-700">
+        </div>
+
+        {# Google #}
+        <a href="{% provider_login_url 'google' %}"
+           class="flex items-center justify-center gap-3 w-full py-3 rounded-full border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-white font-medium text-sm transition-colors">
+            {% include 'login/icons/google.svg' %}
+            Continuar con Google
+        </a>
+
+        {# Olvidaste contraseña #}
+        <a href="{% url 'account_reset_password' %}" class="text-center text-sm text-zinc-400 hover:text-white transition-colors">
+            ¿Olvidaste tu contraseña?
+        </a>
+
+    </div>
+</div>
+
+<script src="{% static 'js/waves.js' %}" defer></script>
+<script src="{% static 'js/login.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block title %}Informes · Gestor Horarios UCJC{% endblock %}
+
+{% block page_title %}Informes{% endblock %}
+{% block page_subtitle %}RF-03 — Estadísticas y resúmenes de horarios aprobados{% endblock %}
+
+{% block page_content %}
+
+<!-- Filtros -->
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-5 flex flex-wrap gap-3 items-end">
+  <form method="get" class="flex flex-wrap gap-3 items-end">
+    <div>
+      <label class="block text-xs text-zinc-500 mb-1">Titulación</label>
+      <select name="titulacion" class="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-600">
+        <option value="">Todas</option>
+        {% for t in titulaciones %}
+        <option value="{{ t.pk }}" {% if titulacion_filter == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs text-zinc-500 mb-1">Curso académico</label>
+      <select name="curso" class="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-600">
+        <option value="">Todos</option>
+        {% for c in cursos %}
+        <option value="{{ c.pk }}" {% if curso_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition-colors">Generar informe</button>
+    <a href="{% url 'schedule:informes' %}" class="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors">Limpiar</a>
+  </form>
+</div>
+
+{% if datos_informe %}
+
+<!-- Estadísticas globales -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div class="text-xs text-zinc-500">Horarios aprobados</div>
+    <div class="text-2xl font-bold text-white mt-1">{{ datos_informe|length }}</div>
+  </div>
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div class="text-xs text-zinc-500">Total sesiones</div>
+    <div class="text-2xl font-bold text-white mt-1">
+      {% with total=0 %}
+        {% for d in datos_informe %}{% with total=total|add:d.sesiones_n %}{% endwith %}{% endfor %}
+        {% for d in datos_informe %}{{ d.sesiones_n }}{% if not forloop.last %}+{% endif %}{% endfor %}
+      {% endwith %}
+    </div>
+  </div>
+</div>
+
+<!-- Tabla de informes -->
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+  <div class="px-4 py-3 border-b border-zinc-800">
+    <h2 class="text-sm font-semibold text-white">Detalle por horario</h2>
+  </div>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-zinc-800">
+        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Titulación</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Nivel</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Curso</th>
+        <th class="px-4 py-3 text-right text-xs font-semibold text-zinc-500 uppercase tracking-wider">Sesiones</th>
+        <th class="px-4 py-3 text-right text-xs font-semibold text-zinc-500 uppercase tracking-wider">Horas est.</th>
+        <th class="px-4 py-3 text-right"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-zinc-800">
+      {% for d in datos_informe %}
+      <tr class="hover:bg-zinc-800/40 transition-colors">
+        <td class="px-4 py-3 font-medium text-white">{{ d.horario.titulacion.nombre }}</td>
+        <td class="px-4 py-3 text-zinc-300">{{ d.horario.nivel }}</td>
+        <td class="px-4 py-3 text-zinc-400">{{ d.horario.curso_academico }}</td>
+        <td class="px-4 py-3 text-right text-white font-medium">{{ d.sesiones_n }}</td>
+        <td class="px-4 py-3 text-right text-zinc-400">{{ d.horas_total }}h</td>
+        <td class="px-4 py-3 text-right">
+          <a href="{% url 'schedule:horario_detalle' d.horario.pk %}"
+             class="text-xs text-red-400 hover:text-red-300 transition-colors">Ver</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
+  <svg class="w-12 h-12 text-zinc-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+  </svg>
+  <p class="text-zinc-500 text-sm">No hay horarios aprobados para el período seleccionado.</p>
+</div>
+{% endif %}
+
+{% endblock %}

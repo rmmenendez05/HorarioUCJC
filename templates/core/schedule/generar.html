@@ -1,0 +1,413 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block title %}Generar horario · {{ horario }}{% endblock %}
+{% block page_title %}Asistente de generación{% endblock %}
+{% block page_subtitle %}{{ horario.titulacion }} · {{ horario.nivel }} · {{ horario.curso_academico }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'schedule:horario_restricciones' horario.pk %}"
+   class="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors">← Restricciones</a>
+<a href="{% url 'schedule:horario_detalle' horario.pk %}"
+   class="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors">Ver horario</a>
+{% endblock %}
+
+{% block page_content %}
+
+<!-- Stepper -->
+<div class="flex items-center gap-0 mb-8">
+  <div class="flex items-center gap-2">
+    <div class="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center text-xs font-bold text-white">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <span class="text-sm text-zinc-400">Datos básicos</span>
+  </div>
+  <div class="flex-1 mx-4 h-px bg-zinc-600 max-w-16"></div>
+  <div class="flex items-center gap-2">
+    <div class="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center text-xs font-bold text-white">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <span class="text-sm text-zinc-400">Restricciones</span>
+  </div>
+  <div class="flex-1 mx-4 h-px bg-zinc-600 max-w-16"></div>
+  <div class="flex items-center gap-2">
+    <div class="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-xs font-bold text-white">3</div>
+    <span class="text-sm font-medium text-white">Configuración</span>
+  </div>
+  <div class="flex-1 mx-4 h-px bg-zinc-700 max-w-16"></div>
+  <div class="flex items-center gap-2">
+    <div class="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-400">4</div>
+    <span class="text-sm text-zinc-500">Resultado</span>
+  </div>
+</div>
+
+<form method="post" id="gen-form">
+{% csrf_token %}
+
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+  <!-- ── Columna izquierda: estado del sistema + asignaturas ── -->
+  <div class="lg:col-span-2 space-y-4">
+
+    <!-- PASO 1: Comprobación del sistema -->
+    <div>
+      <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Paso 1 · Estado del sistema</h2>
+      <div class="space-y-2">
+
+        <!-- Aulas -->
+        <div class="bg-zinc-900 border rounded-xl px-4 py-3 flex items-center gap-3
+          {% if aulas_n > 0 %}border-zinc-800{% else %}border-red-800{% endif %}">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+            {% if aulas_n > 0 %}bg-green-900/40{% else %}bg-red-900/40{% endif %}">
+            {% if aulas_n > 0 %}
+            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+            {% else %}
+            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            {% endif %}
+          </div>
+          <div>
+            <div class="text-sm font-medium {% if aulas_n > 0 %}text-white{% else %}text-red-300{% endif %}">Aulas</div>
+            <div class="text-xs {% if aulas_n > 0 %}text-zinc-400{% else %}text-red-400{% endif %}">
+              {{ aulas_n }} aula{% if aulas_n != 1 %}s{% endif %} activa{% if aulas_n != 1 %}s{% endif %}
+              {% if aulas_n == 0 %} — <a href="{% url 'schedule:config' %}" class="underline">Configurar</a>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Asignaturas -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-green-900/40 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-medium text-white">Asignaturas</div>
+            <div class="text-xs text-zinc-400">{{ preflight|length }} en el plan de estudios</div>
+          </div>
+        </div>
+
+        <!-- Profesores -->
+        <div class="bg-zinc-900 border rounded-xl px-4 py-3 flex items-center gap-3
+          {% if sin_prof %}border-amber-800/60{% else %}border-zinc-800{% endif %}">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+            {% if sin_prof %}bg-amber-900/40{% else %}bg-green-900/40{% endif %}">
+            {% if sin_prof %}
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            {% else %}
+            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+            {% endif %}
+          </div>
+          <div>
+            <div class="text-sm font-medium {% if sin_prof %}text-amber-300{% else %}text-white{% endif %}">
+              Profesores asignados
+            </div>
+            <div class="text-xs {% if sin_prof %}text-amber-400{% else %}text-zinc-400{% endif %}">
+              {{ preflight|length }} asignaturas
+              {% if sin_prof %} · {{ sin_prof|length }} sin titular{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Sesiones existentes -->
+        {% if sesiones_prev %}
+        <div class="bg-zinc-900 border border-amber-800/40 rounded-xl px-4 py-3 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-900/30 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-medium text-amber-300">Sesiones existentes</div>
+            <div class="text-xs text-amber-400">{{ sesiones_prev }} sesión{% if sesiones_prev != 1 %}es{% endif %} se reemplazarán</div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- Asignaturas del plan -->
+    <div>
+      <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+        Plan de estudios ({{ preflight|length }})
+      </h2>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+
+        <div class="px-4 py-2 bg-zinc-800/40 border-b border-zinc-800">
+          <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">1er semestre</span>
+        </div>
+        {% for item in preflight %}{% if item.semestre == 1 %}
+        <div class="px-4 py-2 border-b border-zinc-800/60 flex items-center gap-2 hover:bg-zinc-800/20">
+          {% if item.tiene_prof %}
+          <svg class="w-3.5 h-3.5 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+          {% else %}
+          <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          {% endif %}
+          <div class="flex-1 min-w-0">
+            <span class="text-xs text-white truncate block">{{ item.asignatura.nombre }}</span>
+          </div>
+          <div class="text-xs shrink-0 {% if item.tiene_prof %}text-zinc-500{% else %}text-amber-400{% endif %} truncate max-w-28">
+            {% if item.tiene_prof %}{{ item.profesor.usuario.get_full_name }}{% else %}Sin profesor{% endif %}
+          </div>
+        </div>
+        {% endif %}{% endfor %}
+
+        <div class="px-4 py-2 bg-zinc-800/40 border-b border-zinc-800 border-t border-t-zinc-700/40">
+          <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">2º semestre</span>
+        </div>
+        {% for item in preflight %}{% if item.semestre == 2 %}
+        <div class="px-4 py-2 border-b border-zinc-800/60 last:border-0 flex items-center gap-2 hover:bg-zinc-800/20">
+          {% if item.tiene_prof %}
+          <svg class="w-3.5 h-3.5 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+          {% else %}
+          <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          {% endif %}
+          <div class="flex-1 min-w-0">
+            <span class="text-xs text-white truncate block">{{ item.asignatura.nombre }}</span>
+          </div>
+          <div class="text-xs shrink-0 {% if item.tiene_prof %}text-zinc-500{% else %}text-amber-400{% endif %} truncate max-w-28">
+            {% if item.tiene_prof %}{{ item.profesor.usuario.get_full_name }}{% else %}Sin profesor{% endif %}
+          </div>
+        </div>
+        {% endif %}{% endfor %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Columna derecha: PASO 2 Configuración ── -->
+  <div class="lg:col-span-3">
+    <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Paso 2 · Configuración del horario</h2>
+
+    {% if config_form.non_field_errors %}
+    <div class="mb-4 p-3 rounded-lg bg-red-900/20 border border-red-700/40 text-xs text-red-300">
+      {% for e in config_form.non_field_errors %}{{ e }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-6">
+
+      <!-- Días lectivos -->
+      <div>
+        <label class="block text-sm font-semibold text-white mb-3">Días lectivos</label>
+        <div class="grid grid-cols-5 gap-2" id="dias-grid">
+          {% for value, label in config_form.dias.field.choices %}
+          <label class="day-btn relative cursor-pointer select-none">
+            <input type="checkbox" name="dias" value="{{ value }}"
+                   class="sr-only peer"
+                   {% if value|stringformat:"s" in config_form.dias.value %}checked{% elif not config_form.is_bound %}checked{% endif %}>
+            <div class="peer-checked:bg-red-600 peer-checked:border-red-500 peer-checked:text-white
+                        bg-zinc-800 border border-zinc-700 text-zinc-400
+                        rounded-xl py-3 text-center transition-all hover:border-zinc-500">
+              <div class="text-xs font-bold">{{ label|slice:":3" }}</div>
+              <div class="text-xs mt-0.5 opacity-70">{{ label|slice:"3:" }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Horario -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Hora de inicio</label>
+          <input type="time" name="hora_inicio"
+                 value="{% if config_form.hora_inicio.value %}{{ config_form.hora_inicio.value }}{% else %}15:00{% endif %}"
+                 class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2.5
+                        focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600"
+                 id="hora-inicio">
+          {% if config_form.hora_inicio.errors %}
+          <p class="text-xs text-red-400 mt-1">{{ config_form.hora_inicio.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-2">Hora de finalización</label>
+          <input type="time" name="hora_fin"
+                 value="{% if config_form.hora_fin.value %}{{ config_form.hora_fin.value }}{% else %}21:00{% endif %}"
+                 class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2.5
+                        focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600"
+                 id="hora-fin">
+          {% if config_form.hora_fin.errors %}
+          <p class="text-xs text-red-400 mt-1">{{ config_form.hora_fin.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Duración sesión -->
+      <div>
+        <label class="block text-xs font-semibold text-zinc-400 mb-2">Duración de cada sesión</label>
+        <div class="grid grid-cols-3 gap-2">
+          {% for value, label in config_form.duracion_min.field.choices %}
+          <label class="cursor-pointer select-none">
+            <input type="radio" name="duracion_min" value="{{ value }}"
+                   class="sr-only peer"
+                   {% if config_form.duracion_min.value == value|stringformat:"s" %}checked{% elif not config_form.is_bound and value == 90 %}checked{% endif %}>
+            <div class="peer-checked:bg-red-600/20 peer-checked:border-red-500 peer-checked:text-white
+                        bg-zinc-800 border border-zinc-700 text-zinc-400
+                        rounded-xl px-3 py-3 text-center transition-all hover:border-zinc-500 cursor-pointer">
+              <div class="text-sm font-semibold">{{ label }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Preview dinámico de franjas -->
+      <div class="bg-zinc-800/60 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold text-zinc-400">Vista previa de franjas</span>
+          <span class="text-xs text-zinc-500" id="preview-count">—</span>
+        </div>
+        <div id="preview-grid" class="flex flex-wrap gap-1.5 min-h-8">
+          <span class="text-xs text-zinc-600">Ajusta los parámetros para ver la vista previa</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    {% if puede_generar %}
+    <div class="mt-4 bg-zinc-900 border border-zinc-700 rounded-xl p-5">
+      {% if sin_prof %}
+      <div class="flex items-start gap-3 mb-4 p-3 rounded-lg bg-amber-900/20 border border-amber-700/30">
+        <svg class="w-4 h-4 text-amber-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <p class="text-xs text-amber-300">
+          <strong>{{ sin_prof|length }} asignatura{% if sin_prof|length != 1 %}s{% endif %} sin profesor.</strong>
+          Se omitirán en la generación.
+          <a href="{% url 'schedule:disponibilidad' %}" class="underline">Asignar profesores</a>
+        </p>
+      </div>
+      {% endif %}
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm font-semibold text-white">Listo para generar</div>
+          <div class="text-xs text-zinc-400 mt-0.5" id="resumen-config">
+            {{ preflight|length }} asignaturas · {{ aulas_n }} aulas
+          </div>
+        </div>
+        <button type="submit" id="gen-btn"
+                class="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          Generar horario
+        </button>
+      </div>
+    </div>
+    {% else %}
+    <div class="mt-4 bg-red-900/20 border border-red-700/40 rounded-xl p-4 text-sm text-red-300">
+      No se puede generar: faltan aulas activas o no hay asignaturas en el plan.
+      <a href="{% url 'schedule:config' %}" class="underline ml-1">Ir a Configuración</a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+</form>
+
+<script>
+(function() {
+  const DIA_LABELS = {1:'L', 2:'M', 3:'X', 4:'J', 5:'V'};
+
+  function getConfig() {
+    const dias = [...document.querySelectorAll('input[name="dias"]:checked')].map(el => parseInt(el.value));
+    const hi   = document.getElementById('hora-inicio').value;
+    const hf   = document.getElementById('hora-fin').value;
+    const dur  = parseInt(document.querySelector('input[name="duracion_min"]:checked')?.value || 90);
+    return { dias, hi, hf, dur };
+  }
+
+  function parseTime(t) {
+    if (!t) return null;
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function fmtTime(min) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0');
+    const m = (min % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
+  function renderPreview() {
+    const { dias, hi, hf, dur } = getConfig();
+    const grid = document.getElementById('preview-grid');
+    const count = document.getElementById('preview-count');
+
+    const hiMin = parseTime(hi);
+    const hfMin = parseTime(hf);
+
+    if (!dias.length || !hiMin || !hfMin || hfMin <= hiMin || (hfMin - hiMin) < dur) {
+      grid.innerHTML = '<span class="text-xs text-zinc-600">Configura los parámetros correctamente</span>';
+      count.textContent = '—';
+      document.getElementById('resumen-config').textContent =
+        '{{ preflight|length }} asignaturas · {{ aulas_n }} aulas';
+      return;
+    }
+
+    const slots = [];
+    let cursor = hiMin;
+    while (cursor + dur <= hfMin) {
+      slots.push([cursor, cursor + dur]);
+      cursor += dur;
+    }
+
+    const total = dias.length * slots.length;
+    count.textContent = `${total} franjas (${dias.length} días × ${slots.length} sesiones)`;
+    document.getElementById('resumen-config').textContent =
+      `{{ preflight|length }} asignaturas · ${total} franjas · {{ aulas_n }} aulas`;
+
+    grid.innerHTML = '';
+    for (const dia of dias.sort((a,b)=>a-b)) {
+      for (const [s, e] of slots) {
+        const chip = document.createElement('div');
+        chip.className = 'px-2 py-1 rounded-md bg-zinc-700 text-xs text-zinc-300 font-mono whitespace-nowrap';
+        chip.textContent = `${DIA_LABELS[dia]} ${fmtTime(s)}`;
+        grid.appendChild(chip);
+      }
+    }
+  }
+
+  // Attach listeners
+  document.querySelectorAll('input[name="dias"]').forEach(el => el.addEventListener('change', renderPreview));
+  document.getElementById('hora-inicio').addEventListener('input', renderPreview);
+  document.getElementById('hora-fin').addEventListener('input', renderPreview);
+  document.querySelectorAll('input[name="duracion_min"]').forEach(el => el.addEventListener('change', renderPreview));
+
+  // Submit spinner
+  document.getElementById('gen-form').addEventListener('submit', function() {
+    const btn = document.getElementById('gen-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Generando…';
+  });
+
+  // Initial render
+  renderPreview();
+})();
+</script>
+
+{% endblock %}

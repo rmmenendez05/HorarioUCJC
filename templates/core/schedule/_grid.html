@@ -1,0 +1,39 @@
+<!-- Reusable schedule grid partial. Requires: sesiones, franjas, dias in context -->
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+  <div class="overflow-x-auto p-4">
+    <table class="w-full text-xs border-separate border-spacing-0.5">
+      <thead>
+        <tr>
+          <th class="text-left px-2 py-1.5 text-zinc-500 font-medium w-24">Franja</th>
+          {% for num, nombre in dias %}
+          <th class="text-center px-2 py-1.5 text-zinc-400 font-medium">{{ nombre }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for franja in franjas %}
+        <tr>
+          <td class="px-2 py-1.5 text-zinc-500 whitespace-nowrap">
+            {{ franja.hora_inicio|time:"H:i" }}–{{ franja.hora_fin|time:"H:i" }}
+          </td>
+          {% for num, nombre in dias %}
+          <td class="px-1 py-1">
+            {% for s in sesiones %}
+              {% if s.franja.id == franja.id and s.franja.dia_semana == num %}
+              <div class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-2 hover:border-red-600/50 transition-colors mb-1">
+                <div class="font-semibold text-white truncate">{{ s.asignatura.nombre|truncatechars:20 }}</div>
+                <div class="text-zinc-400 mt-0.5">{{ s.aula.codigo }}{% if s.grupo %} · {{ s.grupo }}{% endif %}</div>
+                {% if s.profesor %}
+                <div class="text-zinc-500 truncate">{{ s.profesor.usuario.get_full_name|truncatechars:16 }}</div>
+                {% endif %}
+              </div>
+              {% endif %}
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

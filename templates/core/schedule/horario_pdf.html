@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horario · {{ horario.titulacion }} {{ horario.nivel.anio }}º</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      font-size: 10pt;
+      background: #fff;
+      color: #111;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    .pdf-header {
+      border-bottom: 3px solid #dc2626;
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: #dc2626;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-text .title   { font-size: 15pt; font-weight: 700; }
+    .brand-text .sub     { font-size: 8pt; color: #6b7280; text-transform: uppercase; letter-spacing: .07em; }
+    .header-meta         { text-align: right; }
+    .header-meta .name   { font-size: 13pt; font-weight: 700; }
+    .header-meta .detail { font-size: 9pt; color: #6b7280; margin-top: 2px; }
+    .badge-estado {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 9999px;
+      font-size: 8pt; font-weight: 600;
+      background: #dcfce7; color: #15803d; border: 1px solid #86efac;
+      margin-left: 8px; vertical-align: middle;
+    }
+
+    /* ── Toolbar (screen only) ──────────────────────────────────────── */
+    .toolbar {
+      display: flex; justify-content: flex-end; gap: 8px;
+      margin-bottom: 16px;
+    }
+    .btn {
+      border: none; padding: 8px 18px; border-radius: 6px;
+      font-size: 10pt; font-weight: 600; cursor: pointer;
+    }
+    .btn-primary { background: #dc2626; color: #fff; }
+    .btn-secondary { background: #e5e7eb; color: #374151; }
+
+    /* ── Grid ───────────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    thead th {
+      background: #1f2937;
+      color: #fff;
+      font-size: 9pt; font-weight: 700;
+      text-align: center;
+      padding: 7px 4px;
+      border: 1px solid #374151;
+    }
+    td {
+      border: 1px solid #e5e7eb;
+      vertical-align: top;
+      padding: 3px;
+    }
+    .col-time {
+      background: #f3f4f6;
+      text-align: center;
+      width: 70px;
+      font-size: 9pt; font-weight: 600; color: #4b5563;
+      padding: 6px 4px;
+    }
+    .col-time .hf { font-size: 8pt; color: #9ca3af; }
+    td.empty { background: #fafafa; }
+
+    /* ── Session card ───────────────────────────────────────────────── */
+    .session-card {
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin-bottom: 3px;
+      border-left: 3px solid;
+      page-break-inside: avoid;
+    }
+    .session-card:last-child { margin-bottom: 0; }
+    .s-name { font-size: 8.5pt; font-weight: 700; line-height: 1.25; }
+    .s-meta { font-size: 7.5pt; color: #6b7280; margin-top: 1px; }
+
+    /* ── Legend ─────────────────────────────────────────────────────── */
+    .legend { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+    .legend-label { font-size: 8pt; font-weight: 600; color: #374151; }
+    .legend-item  { display: flex; align-items: center; gap: 5px; font-size: 8pt; color: #374151; }
+    .legend-swatch {
+      width: 12px; height: 12px;
+      border-radius: 2px;
+      border-left: 3px solid;
+      flex-shrink: 0;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────────────── */
+    .pdf-footer {
+      margin-top: 16px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 8px;
+      display: flex; justify-content: space-between;
+      font-size: 8pt; color: #9ca3af;
+    }
+
+    /* ── Print ──────────────────────────────────────────────────────── */
+    @page { size: A4 landscape; margin: 1.2cm 1.4cm; }
+    @media print {
+      .toolbar { display: none !important; }
+      tr { page-break-inside: avoid; }
+    }
+    @media screen {
+      body { max-width: 1140px; margin: 24px auto; padding: 0 16px; background: #f4f4f5; }
+      .pdf-wrap { background: #fff; padding: 32px; box-shadow: 0 4px 24px rgba(0,0,0,.12); border-radius: 8px; }
+    }
+  </style>
+</head>
+<body>
+<div class="pdf-wrap">
+
+  <!-- Header -->
+  <div class="pdf-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" fill="none" stroke="white" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="title">Horario · UCJC</div>
+        <div class="sub">Escuela Politécnica</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="name">
+        {{ horario.titulacion }} — {{ horario.nivel.anio }}º
+        <span class="badge-estado">{{ horario.get_estado_display }}</span>
+      </div>
+      <div class="detail">
+        Curso {{ horario.curso_academico }}
+        {% if horario.aprobado_por %}&nbsp;·&nbsp;Aprobado por {{ horario.aprobado_por.get_full_name }}{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar (screen) -->
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+    <button class="btn btn-secondary" onclick="history.back()">← Volver</button>
+  </div>
+
+  <!-- Grid -->
+  {% if filas %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px;">Franja</th>
+        {% for dia_num, dia_nom in dias %}<th>{{ dia_nom }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in filas %}
+      <tr>
+        <td class="col-time">
+          {{ fila.hi|time:"H:i" }}<br>
+          <span class="hf">{{ fila.hf|time:"H:i" }}</span>
+        </td>
+        {% for celda in fila.celdas %}
+        <td {% if not celda.sesiones %}class="empty"{% endif %}>
+          {% for s in celda.sesiones %}
+          <div class="session-card"
+               style="background:{{ s.color.bg }};border-color:{{ s.color.border }};">
+            <div class="s-name" style="color:{{ s.color.text }};">{{ s.asignatura.nombre }}</div>
+            <div class="s-meta">
+              <strong>{{ s.aula.codigo }}</strong>{% if s.grupo %} · {{ s.grupo }}{% endif %}
+              &nbsp;·&nbsp;{{ s.profesor.usuario.get_full_name|default:"—"|truncatechars:22 }}
+            </div>
+          </div>
+          {% endfor %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Legend -->
+  {% if sesiones %}
+  <div class="legend">
+    <span class="legend-label">Asignaturas:</span>
+    {% for s in sesiones %}{% ifchanged s.asignatura_id %}
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:{{ s.color.bg }};border-color:{{ s.color.border }};"></div>
+      {{ s.asignatura.nombre|truncatechars:32 }}
+    </div>
+    {% endifchanged %}{% endfor %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <p style="text-align:center;color:#9ca3af;padding:48px 0;">
+    Este horario no tiene sesiones asignadas.
+  </p>
+  {% endif %}
+
+  <!-- Footer -->
+  <div class="pdf-footer">
+    <span>Gestor de Horarios UCJC &nbsp;·&nbsp; Escuela Politécnica</span>
+    <span>Generado el {{ fecha_generacion|date:"d/m/Y" }}</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,521 @@
+{% load static %} {% load django_htmx %} {% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}Gestor Horarios UCJC{% endblock %}</title>
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  {% tailwind_css %}
+  <style>
+    /* Textarea resize disabled */
+    textarea { resize: none; }
+
+    /* Custom select — oculta el nativo mientras JS monta el custom */
+    select.cs-origin { display: none !important; }
+
+    /* Scrollbar del dropdown custom */
+    .cs-list::-webkit-scrollbar { width: 6px; }
+    .cs-list::-webkit-scrollbar-track { background: transparent; }
+    .cs-list::-webkit-scrollbar-thumb { background: #52525b; border-radius: 3px; }
+    .cs-list::-webkit-scrollbar-thumb:hover { background: #71717a; }
+    .cs-list { scrollbar-width: thin; scrollbar-color: #52525b transparent; }
+
+    /* Animaciones del dropdown custom */
+    @keyframes csOpen  { from { opacity:0; transform:scaleY(.95) } to { opacity:1; transform:scaleY(1) } }
+    @keyframes csClose { from { opacity:1; transform:scaleY(1) } to { opacity:0; transform:scaleY(.95) } }
+    .cs-opening { animation: csOpen  150ms ease-in  forwards; transform-origin: top; }
+    .cs-closing { animation: csClose 120ms ease-out forwards; transform-origin: top; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-black text-white h-screen flex overflow-hidden" style="font-family: 'Inter', system-ui, sans-serif;">
+
+  <!-- Wave background canvas -->
+  <canvas id="waveCanvas"
+          style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;opacity:0.4;pointer-events:none;"></canvas>
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col shrink-0 h-full">
+
+    <!-- Brand -->
+    <div class="px-5 py-5 border-b border-zinc-800 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-red-600 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-sm font-semibold text-white leading-tight tracking-tight">Horario · UCJC</div>
+        <div class="text-xs text-zinc-500 uppercase tracking-widest leading-tight mt-0.5">Esc. Politécnica</div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+
+      <!-- Panel principal — visible para todos -->
+      <a href="{% url 'dashboard' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.namespace != 'schedule' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        Panel principal
+      </a>
+
+      {% with url_name=request.resolver_match.url_name ns=request.resolver_match.namespace %}
+
+      <!-- DECANO -->
+      {% if request.user.rol == 'DECANO' %}
+
+      <div class="pt-4 pb-1.5">
+        <span class="px-3 text-xs font-semibold text-zinc-600 uppercase tracking-widest">Administración</span>
+      </div>
+
+      <a href="{% url 'user_management' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if url_name == 'user_management' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Gestión de usuarios
+      </a>
+
+      <a href="{% url 'schedule:curriculum' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and 'curriculum' in url_name %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        Plan de estudios
+      </a>
+
+      <div class="pt-4 pb-1.5">
+        <span class="px-3 text-xs font-semibold text-zinc-600 uppercase tracking-widest">Horarios</span>
+      </div>
+
+      <a href="{% url 'schedule:horarios_list' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'horarios_list' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        Gestión de horarios
+      </a>
+
+      <a href="{% url 'schedule:disponibilidad' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'disponibilidad' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Disponibilidad
+      </a>
+
+      <div class="pt-4 pb-1.5">
+        <span class="px-3 text-xs font-semibold text-zinc-600 uppercase tracking-widest">Sistema</span>
+      </div>
+
+      <a href="{% url 'schedule:config' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'config' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Configuración
+      </a>
+
+      <a href="{% url 'schedule:audit' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'audit' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Auditoría
+      </a>
+
+      <a href="{% url 'schedule:informes' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'informes' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Informes
+      </a>
+
+      <!-- PROFESOR -->
+      {% elif request.user.rol == 'PROFESOR' %}
+
+      <div class="pt-4 pb-1.5">
+        <span class="px-3 text-xs font-semibold text-zinc-600 uppercase tracking-widest">Docencia</span>
+      </div>
+
+      <a href="{% url 'schedule:mi_horario' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'mi_horario' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Mi horario
+      </a>
+
+      <a href="{% url 'schedule:disponibilidad' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'disponibilidad' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Mi disponibilidad
+      </a>
+
+      <!-- ALUMNO -->
+      {% elif request.user.rol == 'ALUMNO' %}
+
+      <div class="pt-4 pb-1.5">
+        <span class="px-3 text-xs font-semibold text-zinc-600 uppercase tracking-widest">Mi área</span>
+      </div>
+
+      <a href="{% url 'schedule:mi_horario' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'mi_horario' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Mi horario
+      </a>
+
+      {% else %}
+
+      <div class="pt-4 pb-1.5">
+        <span class="px-3 text-xs font-semibold text-zinc-600 uppercase tracking-widest">Sistema</span>
+      </div>
+
+      <a href="{% url 'schedule:horarios_list' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-white hover:bg-zinc-800">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        Horarios
+      </a>
+
+      {% endif %}
+
+      <!-- Notificaciones — visible para todos con schedule -->
+      {% if request.user.rol != 'IT' %}
+      <div class="pt-4 pb-1.5">
+        <span class="px-3 text-xs font-semibold text-zinc-600 uppercase tracking-widest">Comunicaciones</span>
+      </div>
+      <a href="{% url 'schedule:notificaciones' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+         {% if ns == 'schedule' and url_name == 'notificaciones' %}bg-red-600 text-white{% else %}text-zinc-400 hover:text-white hover:bg-zinc-800{% endif %}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        Notificaciones
+        {% if notif_no_leidas %}
+        <span class="ml-auto text-xs font-bold bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
+          {{ notif_no_leidas }}
+        </span>
+        {% endif %}
+      </a>
+      {% endif %}
+
+      {% endwith %}
+
+    </nav>
+
+    <!-- User section -->
+    <div class="border-t border-zinc-800 px-4 py-4 shrink-0">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-xs font-bold text-white shrink-0 uppercase">
+          {% if request.user.first_name %}{{ request.user.first_name|first }}{% if request.user.last_name %}{{ request.user.last_name|first }}{% endif %}{% else %}{{ request.user.email|first }}{% endif %}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-medium text-white truncate leading-tight">
+            {{ request.user.get_full_name|default:request.user.email }}
+          </div>
+          <div class="text-xs text-zinc-500 truncate leading-tight mt-0.5">{{ request.user.get_rol_display }}</div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'account_logout' %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full px-3 py-2 rounded-lg text-xs font-medium text-zinc-500 hover:text-white hover:bg-zinc-800 flex items-center gap-2 transition-colors">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Cerrar sesión
+        </button>
+      </form>
+    </div>
+
+  </aside>
+
+  <!-- Main -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden">
+
+    <!-- Topbar -->
+    <header class="relative z-10 bg-zinc-900 border-b border-zinc-800 px-6 py-5 flex items-center justify-between shrink-0">
+      <div>
+        <h1 class="text-sm font-semibold text-white leading-tight">{% block page_title %}Panel Principal{% endblock %}</h1>
+        <p class="text-xs text-zinc-500 mt-0.5 leading-tight">{% block page_subtitle %}Gestor de Horarios UCJC{% endblock %}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        {% block topbar_actions %}{% endblock %}
+
+        <!-- Notification bell -->
+        {% if request.user.is_authenticated and request.user.rol != 'IT' %}
+        <div class="relative" id="notif-wrapper">
+          <button id="notif-btn"
+                  class="relative p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/70 transition-colors"
+                  aria-label="Notificaciones">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            {% if notif_no_leidas %}
+            <span class="absolute -top-0.5 -right-0.5 min-w-4 h-4 bg-red-600 rounded-full text-white text-[10px] font-bold flex items-center justify-center px-0.5 leading-none">
+              {{ notif_no_leidas }}
+            </span>
+            {% endif %}
+          </button>
+
+          <!-- Dropdown panel -->
+          <div id="notif-panel"
+               class="hidden absolute right-0 top-full mt-2 w-80 bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 rounded-xl shadow-2xl z-9999 overflow-hidden">
+
+            <div class="px-4 py-3 border-b border-zinc-800 flex items-center justify-between gap-3">
+              <span class="text-sm font-semibold text-white">Notificaciones</span>
+              {% if notif_no_leidas %}
+              <form method="post" action="{% url 'schedule:notificaciones_leer_todas' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit"
+                        class="text-xs text-zinc-500 hover:text-white transition-colors whitespace-nowrap">
+                  Marcar todas leídas
+                </button>
+              </form>
+              {% endif %}
+            </div>
+
+            {% if notif_recientes %}
+            <div class="divide-y divide-zinc-800/50 max-h-72 overflow-y-auto">
+              {% for n in notif_recientes %}
+              <div class="px-4 py-3 hover:bg-zinc-800/40 transition-colors {% if not n.leida %}bg-zinc-800/25{% endif %}">
+                <div class="flex items-start gap-3">
+                  <div class="w-2 h-2 rounded-full mt-1.5 shrink-0
+                    {% if n.tipo == 'EXITO' %}bg-green-400
+                    {% elif n.tipo == 'ADVERTENCIA' %}bg-amber-400
+                    {% elif n.tipo == 'ERROR' %}bg-red-400
+                    {% else %}bg-blue-400{% endif %}"></div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-white leading-snug">{{ n.titulo }}</p>
+                    <p class="text-xs text-zinc-500 mt-0.5 leading-snug line-clamp-2">{{ n.mensaje }}</p>
+                    <p class="text-xs text-zinc-700 mt-1">{{ n.fecha_creacion|timesince }} atrás</p>
+                  </div>
+                  {% if not n.leida %}
+                  <div class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 mt-1.5"></div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="px-4 py-10 text-center">
+              <svg class="w-8 h-8 text-zinc-700 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+              <p class="text-xs text-zinc-600">Sin notificaciones</p>
+            </div>
+            {% endif %}
+
+            <div class="px-4 py-3 border-t border-zinc-800">
+              <a href="{% url 'schedule:notificaciones' %}"
+                 class="block text-center text-xs text-zinc-500 hover:text-white transition-colors">
+                Ver todas →
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <span class="text-xs font-medium text-zinc-400 bg-zinc-800/80 border border-zinc-700/60 px-3 py-1.5 rounded-full">
+          {{ request.user.get_rol_display }}
+        </span>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="flex-1 overflow-y-auto bg-transparent p-6">
+      {% block page_content %}{% endblock %}
+    </main>
+
+  </div>
+
+  <!-- Toast component -->
+  {% include "components/toast.html" %}
+  <script src="{% static 'js/toast.js' %}"></script>
+  <script>
+    window.toast = showToast;
+    document.addEventListener('DOMContentLoaded', function () {
+      {% for message in messages %}
+      showToast("{{ message|escapejs }}",
+        "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}");
+      {% endfor %}
+    });
+
+    /* Notification bell toggle */
+    (function () {
+      var btn   = document.getElementById('notif-btn');
+      var panel = document.getElementById('notif-panel');
+      if (!btn || !panel) return;
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        panel.classList.toggle('hidden');
+      });
+      document.addEventListener('click', function (e) {
+        var wrapper = document.getElementById('notif-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+          panel.classList.add('hidden');
+        }
+      });
+    })();
+  </script>
+
+  <!-- Wave animation -->
+  <script src="{% static 'js/waves.js' %}"></script>
+
+  <!-- Global custom select -->
+  <script>
+  (function () {
+    var CHEVRON_SVG = '<svg class="cs-chevron" style="width:16px;height:16px;flex-shrink:0;transition:transform 200ms" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
+
+    function buildCustomSelect(sel) {
+      if (sel.dataset.csInit) return;
+      sel.dataset.csInit = '1';
+      sel.classList.add('cs-origin');
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'cs-wrapper';
+      wrapper.style.cssText = 'position:relative;display:inline-block;';
+      sel.parentNode.insertBefore(wrapper, sel);
+      wrapper.appendChild(sel);
+
+      /* Read options */
+      var opts = Array.from(sel.options);
+      var selectedOpt = opts[sel.selectedIndex] || opts[0];
+
+      /* Trigger button */
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-haspopup', 'listbox');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:160px;width:100%;background:#27272a;border:1px solid #3f3f46;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px;color:' + (sel.selectedIndex === 0 && !sel.options[0].value ? '#a1a1aa' : '#fff') + ';transition:border-color 150ms;';
+      btn.innerHTML = '<span class="cs-label" style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (selectedOpt ? selectedOpt.text.trim() : '') + '</span>' + CHEVRON_SVG;
+      btn.addEventListener('mouseenter', function () { btn.style.borderColor = '#71717a'; });
+      btn.addEventListener('mouseleave', function () { btn.style.borderColor = isOpen() ? '#dc2626' : '#3f3f46'; });
+      wrapper.insertBefore(btn, sel);
+
+      /* Dropdown list */
+      var list = document.createElement('ul');
+      list.setAttribute('role', 'listbox');
+      list.className = 'cs-list';
+      list.style.cssText = 'position:absolute;z-index:9999;top:calc(100% + 4px);left:0;min-width:100%;background:#27272a;border:1px solid #3f3f46;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.5);overflow-y:auto;max-height:256px;margin:0;padding:4px 0;list-style:none;display:none;';
+
+      opts.forEach(function (o, i) {
+        var li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        li.dataset.value = o.value;
+        li.style.cssText = 'padding:8px 12px;font-size:14px;cursor:pointer;transition:background 100ms,color 100ms;border-radius:4px;margin:0 4px;';
+        li.textContent = o.text.trim();
+        var isSelected = (i === sel.selectedIndex);
+        li.style.color = isSelected ? '#fff' : '#d4d4d8';
+        if (isSelected) li.style.background = '#991b1b';
+
+        li.addEventListener('mouseenter', function () {
+          if (li.style.background !== '#991b1b') li.style.background = '#dc2626';
+          li.style.color = '#fff';
+        });
+        li.addEventListener('mouseleave', function () {
+          li.style.background = li.dataset.selected === '1' ? '#991b1b' : '';
+          li.style.color = li.dataset.selected === '1' ? '#fff' : '#d4d4d8';
+        });
+        li.addEventListener('click', function () {
+          sel.value = o.value;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+          btn.querySelector('.cs-label').textContent = o.text.trim();
+          btn.style.color = o.value ? '#fff' : '#a1a1aa';
+          list.querySelectorAll('li').forEach(function (l) {
+            l.dataset.selected = '';
+            l.style.background = '';
+            l.style.color = '#d4d4d8';
+          });
+          li.dataset.selected = '1';
+          li.style.background = '#991b1b';
+          li.style.color = '#fff';
+          close();
+        });
+        list.appendChild(li);
+      });
+      wrapper.appendChild(list);
+
+      function isOpen() { return btn.getAttribute('aria-expanded') === 'true'; }
+
+      function open() {
+        list.style.display = 'block';
+        list.classList.remove('cs-closing');
+        list.classList.add('cs-opening');
+        btn.setAttribute('aria-expanded', 'true');
+        btn.style.borderColor = '#dc2626';
+        btn.querySelector('.cs-chevron').style.transform = 'rotate(180deg)';
+      }
+
+      function close() {
+        list.classList.remove('cs-opening');
+        list.classList.add('cs-closing');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.style.borderColor = '#3f3f46';
+        btn.querySelector('.cs-chevron').style.transform = 'rotate(0deg)';
+        list.addEventListener('animationend', function hide() {
+          list.style.display = 'none';
+          list.classList.remove('cs-closing');
+          list.removeEventListener('animationend', hide);
+        });
+      }
+
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        isOpen() ? close() : open();
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!wrapper.contains(e.target) && isOpen()) close();
+      });
+    }
+
+    function initAll() {
+      document.querySelectorAll('select:not([data-cs-skip]):not([data-cs-init])').forEach(buildCustomSelect);
+    }
+
+    document.addEventListener('DOMContentLoaded', initAll);
+
+    /* Re-run for selects added dinámicamente (HTMX, etc.) */
+    var obs = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        m.addedNodes.forEach(function (n) {
+          if (n.nodeType !== 1) return;
+          if (n.tagName === 'SELECT') buildCustomSelect(n);
+          n.querySelectorAll && n.querySelectorAll('select:not([data-cs-skip]):not([data-cs-init])').forEach(buildCustomSelect);
+        });
+      });
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  })();
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

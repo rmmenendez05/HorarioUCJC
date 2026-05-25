@@ -1,0 +1,562 @@
+Documento de Identificación de Requisitos - Sistema de Generación de Horarios
+________________
+
+
+
+
+Universidad Camilo José Cela - Escuela Politécnica
+________________
+
+
+Documento de Identificación de Requisitos
+Sistema de gestión de Horarios Académicos
+Versión 1.0 - Elaborado por Unai Aguirre, Eddyson Ureña, Rodrigo Moreno
+
+________________
+
+
+Índice de contenidos
+
+
+Documento de Identificación de Requisitos        1
+1.0 Introducción al problema        4
+1.1 Objetivos del proyecto        4
+2.0 Identificación de los Interesados del Proyecto (Stakeholders)        5
+2.1 Decano de la Escuela Politécnica / Dirección de Estudiantes        5
+2.2 Profesorado        5
+2.3 Departamento de IT        6
+2.4 Alumnado        6
+3.0 Identificación de Requisitos        7
+3.1 Requisitos Funcionales        7
+3.1.1 Decano de la Escuela Politécnica / Dirección de Estudiantes        8
+3.1.2 Profesorado        9
+3.1.2 Alumnado        10
+3.2 Requisitos No Funcionales        11
+3.2.1 Rendimiento        11
+3.2.2 Seguridad, Legalidad y Privacidad        12
+3.2.3 Usabilidad y Compatibilidad        13
+3.2.4 Escalabilidad y Mantenibilidad        13
+3.2.5 Confiabilidad y Disponibilidad        14
+3.3 Restricciones de Dominio        15
+3.3.1 Distribución de las asignaturas y franjas horarias.        15
+3.3.2 Profesores        15
+3.3.3. Estudiantes        15
+3.3.4. Aulas y recursos        16
+3.3.5. Bloques y secuencias        16
+3.3.6. Fechas y planificación        16
+3.3.7. Titulaciones y cursos        16
+4.0 Clasificación de Requisitos.        17
+4.1 Must Have        17
+4.2 Should Have        19
+4.3 Could Have        20
+4.4 Wont Have        21
+5.0 Anexo        22
+5.1 Bibliografía        22
+5.1.1 Identificación de los Interesados del Proyecto:        22
+5.1.2 Requisitos Funcionales        22
+5.1.2 Requisitos No Funcionales        23
+5.1.3 Restricciones de Dominio        23
+5.2 Tabla Requisitos Funcionales        24
+5.3 Tabla Requisitos No Funcionales        27
+5.4 Consideraciones Técnicas        29
+________________
+
+
+1.0 Introducción al problema
+La aplicación surge ante la necesidad de resolver un problema complejo de planificación académica dentro de un entorno universitario, con múltiples titulaciones y cursos simultáneos.
+Actualmente, un conjunto de profesores imparte docencia en cuatro titulaciones dentro de la Escuela Politécnica de la Universidad Camilo José Cela:
+1. Ingeniería Informática
+2. Ingeniería Robótica
+3. Ingeniería Telemática
+4. Doble Grado Informática + Robótica.
+Cada grado contiene una duración de cuatro años, exceptuando el doble grado con una duración de 5 años. Además, en los grados individuales, las clases se imparten por la tarde.
+Sin embargo, en el Doble Grado, la organización de las clases de último año, pueden darse tanto por la mañana, como por la tarde.
+Cada grado cuenta con una carga de m asignaturas (excepto el Doble Grado, que cuenta con m+1 asignaturas) por semestre, siendo m un número igual a 5.
+Cada asignatura se divide en n sesiones, con una carga de h horas por sesión, siendo n y h un número igual a 2.
+La generación de los horarios de Informática y Robótica está condicionada a la generación de los horarios del Doble Grado. El proceso sigue la siguiente jerarquía: primero se define el horario del Doble Grado; si este contiene más asignaturas de Informática que de Robótica, se utiliza como base para generar el horario de Informática y, finalmente, se procede con el de Robótica.
+Por último, el problema no radica en la asignación de las aulas, sino en la correcta asignación de las aulas para evitar conflictos mayores entre los estudiantes, los profesores y la dirección de estudiantes.
+1.1 Objetivos del proyecto
+La aplicación tiene, como finalidad, automatizar la generación del horario académico, optimizando tanto la gestión del profesorado, como la gestión del alumnado, garantizando el cumplimiento de todas las restricciones académicas y organizativas.
+________________
+2.0 Identificación de los Interesados del Proyecto (Stakeholders)
+Es fundamental identificar los principales interesados en el proyecto, ya que sus necesidades, expectativas y restricciones están condicionadas en el diseño y funcionamiento del sistema. En este contexto, los Stakeholders incluye a quienes se ven directamente afectados por la generación de horarios.
+2.1 Decano de la Escuela Politécnica / Dirección de Estudiantes
+El Decano es un Stakeholder estratégico clave, con alto impacto dentro del desarrollo de la aplicación, y la persona que realiza la gestión de los horarios, ya que es el responsable último de la organización académica. Además, es el principal promotor del sistema de generación de horarios y quien valida el resultado final. 
+
+
+¿Por qué el Decano es un Stakeholder estratégico clave?
+1. Supervisa la planificación docente.
+2. Encargado de la generación técnica de los cuadrantes horarios, asegurando la coherencia global del calendario académico. (Eddyson)
+3. Responsable de administrar la distribución de las asignaturas y de definir la duración específica de las sesiones lectivas dentro del marco horario establecido. (Unai)
+4. Es responsable de que no existan conflictos organizativos.
+5. Debe garantizar que el horario esté definido antes del periodo de matriculación.
+6. Responde ante quejas formales de estudiantes y profesorado.
+7. Busca optimizar recursos (profesorado y carga docente).
+8. Tiene capacidad de decisión sobre cambios estructurales en la planificación.
+2.2 Profesorado
+El profesorado es un stakeholder operativo crítico, con poder medio y alto impacto, ya que son quienes ejecutan la planificación docente y están directamente afectados por la distribución horaria. Este grupo, aunque no diseña el sistema, puede bloquear o generar conflictos dentro de la aplicación.
+
+
+¿Por qué el Profesorado en un Stakeholder operativo crítico?
+1. Pueden impartir asignaturas en distintos cursos o titulaciones.
+2. Tienen disponibilidad horaria limitada.
+3. Es el usuario final del sistema
+4. Pueden verse sobrecargados si la planificación es deficiente.
+5. Si no se sabe su disponibilidad horaria, el sistema no puede operar de manera eficiente
+2.3 Departamento de IT
+En caso de desplegar la aplicación dentro del ecosistema de la Escuela Politécnica, el departamento de IT se encargaría de gestionar la aplicación, aplicar parches de seguridad y velar por su correcto funcionamiento, siendo un potencial Stakeholder para el proyecto.
+
+
+¿Por qué el Departamento de IT es un Stakeholder (En caso de querer escalar)?
+1. Es responsable de la integración del sistema.
+2. Garantiza la disponibilidad y correcto funcionamiento de la plataforma.
+3. Gestiona la infraestructura tecnológica (servidores, bases de datos, red).
+4. Se encarga de la seguridad y protección de los datos académicos.
+5. Debe asegurar la escalabilidad y mantenibilidad del sistema.
+6. Proporciona soporte técnico ante incidencias.
+7. Se aseguran de la correcta integración a MyUCJC.
+2.4 Alumnado
+Aunque el sistema se genera antes de la matriculación, los estudiantes son los principales afectados por el resultado final. Tienen alto interés pero bajo poder individual, aunque colectivamente pueden generar presión institucional.
+
+
+¿Por qué el Alumnado es un grupo que se ve afectado por el resultado final?
+1. No pueden tener asociadas 2 o más asignaturas en un bloque en concreto (ej. Matemáticas y Física al mismo tiempo)
+2. Necesitan horarios coherentes y sin solapamientos.
+3. Algunos estudiantes pueden cursar asignaturas de distintos cursos, por motivos extraordinarios.
+4. La fragmentación excesiva de las clases genera insatisfacción entre los estudiantes.
+5. Los conflictos de horarios pueden impedir la matriculación en determinadas combinaciones.
+6. Se benefician de manera indirecta, asisten a las clases generadas.
+7. No introduce datos, pero su experiencia se ve afectada por la calidad del horario.
+________________
+3.0 Identificación de Requisitos
+Esta sección tiene como objetivo definir las capacidades del sistema, su comportamiento esperado y los límites que garantizan el cumplimiento de las necesidades del cliente.
+En el contexto de nuestro proyecto, detallaremos las funcionalidades del generador de horarios, las métricas y lógica de asignación que debe seguir y, finalmente, las restricciones técnicas o académicas que delimitan su ejecución. Para una mayor claridad, la especificación se estructura en los siguientes tres pilares fundamentales:
+
+
+Tipo de Requisito
+	Definición
+	Requisitos Funcionales 
+(RF)
+	Acciones y servicios específicos que el sistema debe ejecutar
+	Requisitos No Funcionales 
+(RNF)
+	Describen las prioridades y atributos del sistema. No se refieren a una acción concreta, sino a cómo debe funcionar el sistema en términos de rendimiento, seguridad o usabilidad
+	Restricciones de Dominio 
+(RD)
+	Son las limitaciones impuestas por el entorno, la normativa o el modelo de negocio. Son reglas del "mundo real" que el sistema no puede ignorar.
+	
+
+3.1 Requisitos Funcionales
+Para estructurar los Requisitos Funcionales (RF) de manera efectiva, es fundamental alinearlos con los objetivos de los stakeholders principales: el alumnado, el profesorado y el grupo de estudiantes /decano.
+________________
+3.1.1 Decano de la Escuela Politécnica / Dirección de Estudiantes
+   * RF - 01: El sistema debe permitir al personal administrativo gestionar el ciclo completo de horarios (creación, edición y borrado) segmentando por titulación, curso y año académico.
+   * RF - 02: Se debe implementar un motor de reglas que valide, en tiempo real, la disponibilidad del profesorado contra la carga asignada, impidiendo la programación de sesiones simultáneas para un mismo docente (Hard Constraints).
+   * RF - 02.1:  El motor de reglas debe garantizar, mediante un reporte de auditoría, que cada curso académico cumpla estrictamente con el total de horas lectivas requeridas por el plan de estudios antes de permitir su aprobación definitiva.
+   * RF - 03: El sistema debe generar informes dinámicos filtrados por titulación, curso, asignatura o profesorado.
+   * RF - 03.1: Los informes deben ser exportables a PDF (estándar de visualización) y Excel (estándar de manipulación de datos) para facilitar su distribución institucional.
+   * RF - 04: El sistema debe incluir un estado de "Workflow" para los horarios generados (Borrador → Revisión → Aprobado/Rechazado). Este proceso debe requerir la validación formal de un usuario con rol de Decanato o Dirección Académica.
+   * RF - 05: El sistema debe proporcionar una interfaz de configuración dinámica para definir el marco temporal académico. Esta herramienta debe permitir la gestión de: sesiones lectivas, franjas horarias personalizadas y días lectivos, adaptándose a la normativa específica de cada centro. 
+   * RF - 05.1: Los parámetros definidos en esta configuración actuarán como reglas de negocio base para el motor de generación de horarios, garantizando que el sistema sea adaptable a distintos planes de estudio y calendarios institucionales sin requerir cambios en el código fuente.
+   * RF - 06: El sistema debe permitir la vinculación de profesores titulares a asignaturas específicas y el registro de perfiles suplentes categorizados por área de conocimiento, asegurando la cobertura en escenarios de contingencia.
+   * RF - 07: Una vez generado el horario por el motor de reglas, el sistema debe habilitar una interfaz de edición manual para que el perfil de Dirección realice ajustes excepcionales antes de pasar al estado de 'Revisión'.
+________________
+3.1.2 Profesorado
+   * RF - 08: El sistema debe permitir que el profesorado gestione su disponibilidad horaria mediante una interfaz intuitiva. 
+   * RF - 08.1: Los profesores podrán marcar franjas de 'disponibilidad preferente' y 'bloqueos de indisponibilidad', los cuales serán tomados en cuenta por el motor de generación automática de horarios. 
+   * RF - 08.2: Cada actualización de disponibilidad debe quedar registrada en el historial del profesor para auditoría y validación por parte del departamento académico.
+   * RF - 09: El sistema debe proporcionar al profesorado una vista personalizada de su carga docente, permitiendo la consulta centralizada de todas las sesiones, asignaturas y grupos asignados. La interfaz debe permitir el desglose detallado de la información académica para facilitar la gestión del tiempo del docente.
+   * RF - 09.1: El sistema debe mostrar el listado completo de asignaturas, incluyendo código, nombre de la materia, aula y franja horaria correspondiente.
+   * RF - 09.2: Cada entrada en el horario debe identificar explícitamente el grupo o subgrupo de estudiantes asignado a esa sesión específica.
+   * RF - 10: El sistema debe implementar un motor de monitorización que notifique automáticamente al profesor sobre cualquier alteración en su programación académica. 
+   * RF - 10.1: El sistema enviará alertas en tiempo real cuando se detecte un conflicto horario sobrevenido (ej. tras una modificación administrativa) o un cambio en los detalles de una sesión (modificación de aula, docente o franja horaria). Estas alertas deben aparecer como notificaciones in-app y estar visibles en el panel principal del usuario, proporcionando acceso directo a la información actualizada.
+________________
+3.1.2 Alumnado
+   * RF - 11: El sistema debe proporcionar una interfaz de consulta avanzada que permita a los estudiantes visualizar su horario académico completo. La herramienta deberá soportar filtros multinivel para recuperar la información, garantizando que los datos mostrados correspondan únicamente a las asignaturas matriculadas del usuario.
+   * RF - 11.1: Filtrado de sesiones académicas según el nivel académico o año del estudiante.
+   * RF - 11.2: Visualización del horario completo asociado a un plan de estudios o grado específico.
+   * RF - 11.3: Segmentación de la carga lectiva basada en el grupo de clase asignado (teoría, prácticas, laboratorio).
+   * RF - 12: El sistema debe implementar un motor de alertas automáticas para notificar a los estudiantes sobre cambios relevantes en su carga lectiva. El sistema emitirá notificaciones en tiempo real ante las siguientes situaciones:
+   * RF - 12.1: Detección automática de conflictos de horario en asignaturas optativas seleccionadas.
+   * RF - 12.2: Modificaciones en aula, horario o profesor de cualquier asignatura que forme parte de la matrícula del estudiante.
+   * RF - 12.3: Los mensajes deberán ser entregados a través de la interfaz web (notificaciones in-app) y opcionalmente mediante el correo electrónico corporativo."
+   * RF - 13: El sistema debe identificar y mostrar de forma clara aquellas asignaturas que son compartidas entre diferentes titulaciones (asignaturas transversales). En la vista de consulta de horario, cada asignatura compartida deberá incluir un indicador visual (etiqueta o icono) que especifique que el contenido lectivo es común a múltiples planes de estudio, facilitando al estudiante la identificación de espacios de trabajo colaborativo.
+   * RF - 14: El sistema debe incluir un motor de validación que analice la carga lectiva del estudiante y generar alertas automáticas ante conflictos horarios o de solapamiento derivados de la matriculación en asignaturas de diferentes cursos o niveles académicos. 
+   * RF - 14.1 La alerta debe ser inmediata al momento de la selección de asignaturas, especificando claramente cuáles son las sesiones que entran en conflicto y permitiendo al estudiante (o administrador) gestionar la resolución del mismo.
+________________
+3.2 Requisitos No Funcionales
+Para garantizar que la aplicación cumpla con los estándares de calidad industrial y soporte adecuadamente la carga operativa, se han definido los siguientes requisitos no funcionales. 
+Estos requisitos establecen el "cómo" debe comportarse el sistema, más allá de sus funciones específicas.
+En este caso, los requisitos no funcionales se han dividido en los siguientes cinco bloques:
+      1. Rendimiento
+      2. Seguridad, Legalidad y Privacidad
+      3. Usabilidad y Compatibilidad
+      4. Escalabilidad y Mantenibilidad
+      5. Confiabilidad y Disponibilidad
+3.2.1 Rendimiento
+      * RNF-01: El sistema debe completar la generación de horarios para cualquier titulación y curso académico en un tiempo inferior a 300 segundos, bajo condiciones de carga máxima de recursos (profesores, asignaturas y restricciones espaciales), asegurando una tasa de éxito en la resolución del conflicto de horarios del 100%.
+      * RNF-02: La interfaz debe responder a las consultas de horarios realizadas por estudiantes o profesores en un tiempo inferior a 2 segundos, medido desde la emisión de la solicitud HTTP hasta la renderización completa del componente visual en el cliente (Time to Interactive).
+      * RNF-03: El sistema debe mantener la integridad y los tiempos de respuesta definidos (RNF-02) bajo una concurrencia de hasta 500 usuarios conectados simultáneamente, soportando picos de tráfico sin degradación del rendimiento o errores de conexión (HTTP 5xx).
+________________
+3.2.2 Seguridad, Legalidad y Privacidad
+      * RNF-04: El sistema debe implementar un mecanismo de autenticación robusta que valide la identidad del usuario mediante credenciales cifradas (usuario y contraseña). Se deberán aplicar políticas de complejidad de contraseñas y gestión de sesiones para prevenir accesos no autorizados.
+      * RNF-05: El sistema debe garantizar la confidencialidad absoluta de la Información de Identificación Personal (PII) de profesores y estudiantes, cumpliendo estrictamente con el RGPD. La protección de datos se basará en dos pilares:
+      1. Seguridad en Reposo: Todo dato PII almacenado debe estar protegido mediante algoritmos de cifrado de grado industrial (ej. AES-256), asegurando la integridad incluso ante accesos físicos o directos a la base de datos.
+      2. Gestión de Privacidad y Consentimiento: Se prohíbe cualquier transferencia, cesión o acceso a PII por parte de terceros sin una autorización explícita, granular e informada del titular. El sistema debe implementar un registro de auditoría (audit trail) inalterable que garantice la trazabilidad total sobre el estado del consentimiento y los accesos realizados.
+      * RNF-06: El sistema debe integrar un módulo de auditoría (logs) que registre de forma persistente e inalterable cualquier modificación en horarios o configuraciones. Cada registro debe incluir: timestamp (fecha/hora), identificador del usuario, tipo de acción y valor modificado.
+      * RNF-07: El sistema debe gestionar los permisos mediante un modelo de Control de Acceso Basado en Roles (RBAC). El acceso a las funcionalidades y datos estará restringido según los perfiles definidos (Decano, Profesor, Estudiante, IT, Consultores), aplicando el principio de mínimo privilegio.
+________________
+3.2.3 Usabilidad y Compatibilidad
+      * RNF - 08: La interfaz debe ser intuitiva para cualquier usuario, permitiendo que un usuario nuevo pueda generar o consultar horarios sin necesidad de formación previa.
+      * RNF - 08.1: Para garantizar el reconocimiento de marca, la interfaz debe alinearse con la identidad corporativa de la Universidad Camilo José Cela, empleando de forma estandarizada su tipografía oficial y su esquema de colores en todas las secciones del sistema.
+      * RNF - 09: El sistema debe implementar un sistema de notificaciones basado en una jerarquía semántica (informativa, advertencia, error y éxito), utilizando un lenguaje natural y libre de tecnicismos que permita al usuario identificar la causa del evento y la acción correctiva necesaria.
+      * RNF - 10: Se debe implementar una arquitectura de información plana que permita al usuario ejecutar tareas críticas mediante un recorrido máximo de 5 acciones, reduciendo la carga cognitiva y el tiempo de respuesta operativo.
+      * RNF - 11:  El sistema debe garantizar su correcto funcionamiento en las versiones de los navegadores vigentes al 15/03/2026. Específicamente, se debe asegurar la compatibilidad con:
+      * RNF - 11.1: Google Chrome v145.X en adelante
+      * RNF - 11.2: Microsoft Edge (2026) en adelante
+      * RNF - 11.3: Apple Safari (2026) en adelante
+      * RNF - 11.4: Mozilla Firefox (2026) en adelante
+      * RNF - 11.5: Opera / Opera GX(2026) en adelante
+      * RNF-12: El sistema debe garantizar la interoperabilidad con los ecosistemas de software de la Universidad Camilo José Cela mediante la implementación de estándares de comunicación abiertos. La integración debe realizarse a través de APIs RESTful para la transferencia de datos, utilizando formatos de intercambio JSON o XML para la serialización de la información. La capa de persistencia debe basarse en estándares SQL compatibles con los motores de bases de datos relacionales corporativos, asegurando que cualquier intercambio de información sea agnóstico al lenguaje de programación.
+      * 3.2.4 Escalabilidad y Mantenibilidad
+      * RNF-13: El sistema debe implementar una arquitectura basada en el patrón Modelo-Vista-Template (MVT) para garantizar la separación de responsabilidades, facilitando la mantenibilidad y evolución del código. 
+      * RNF-13.1: Adicionalmente, se debe emplear una estrategia de despliegue de alta disponibilidad (como Blue-Green o Rolling Updates), que permita la actualización de módulos, parches de seguridad y nuevas funcionalidades sin interrumpir la operación del sistema, garantizando la integridad, persistencia y disponibilidad de los datos de horarios en todo momento.
+      * RNF - 13.2: Además, este diseño debe garantizar que las actualizaciones, la corrección de errores y la incorporación de nuevas funcionalidades se realicen de forma aislada, minimizando el impacto en el resto del ecosistema y facilitando la labor del equipo de TI.
+      * RNF-14: El sistema debe implementar un servicio centralizado de registros (logs) que capture eventos críticos, errores de ejecución, advertencias y actividades de acceso. 
+      * RNF-14.1: Cada entrada en el log debe incluir obligatoriamente: marca de tiempo (timestamp), nivel de severidad (INFO, WARN, ERROR, CRITICAL), ID de usuario, ID de sesión y un código de error único, facilitando el diagnóstico y la resolución de incidencias por parte del equipo de IT.
+      * RNF-15: La arquitectura del sistema debe estar diseñada para ser escalable, permitiendo el aumento lineal en la cantidad de estudiantes, asignaturas, profesores y cursos sin degradación en el rendimiento ni necesidad de reestructuración profunda del código base. 
+      * RNF - 15.1: El almacenamiento de datos debe estar desacoplado de la lógica de negocio para soportar el crecimiento volumétrico del repositorio de información.
+      * RNF-16: El sistema debe emplear un diseño basado en configuración (no hardcoded) que permita la adición de nuevas titulaciones, modificar los campos de la duración de las asignaturas o la integración de asignaturas compartidas entre departamentos.
+      * RNF - 16.1 La estructura lógica debe garantizar que la incorporación de estas nuevas entidades sea dinámica, manteniendo la integridad de los algoritmos de generación de horarios existentes y sin requerir intervenciones de mantenimiento correctivo en el core del sistema.
+3.2.5 Confiabilidad y Disponibilidad
+      * RNF-17: El sistema debe garantizar una disponibilidad de servicio del 99,5% mensual, medida durante el horario operativo y los periodos críticos de planificación académica. 
+      * RNF-17.1: El proveedor debe asegurar mecanismos de redundancia en la infraestructura para minimizar las interrupciones y garantizar que el tiempo de inactividad acumulado no supere los límites establecidos.
+      * RNF-18: El sistema debe implementar un protocolo de copia de seguridad automatizada (backup) diaria, con una política de retención que garantice la integridad de los datos académicos y horarios históricos. 
+      * RNF-18.1: Estas copias deben almacenarse en una ubicación geográfica distinta (off-site) o en un entorno de almacenamiento redundante, asegurando la inmutabilidad y la protección contra ataques de ransomware.
+      * RNF-19: El sistema debe incluir un Plan de Recuperación ante Desastres que permita la restauración completa de la última configuración estable y de los horarios generados. 
+      * RNF-19.1: El Objetivo de Tiempo de Recuperación deberá ser inferior a 4 horas, y el Objetivo de Punto de Recuperación no deberá superar las 24 horas, asegurando la recuperación íntegra de la base de datos sin pérdida de información académica.
+3.3 Restricciones de Dominio
+Las restricciones de dominio representan las reglas de negocio fundamentales que dictan la lógica operativa del sistema. Estas normas no son opcionales, sino que definen los límites físicos y académicos dentro de los cuales debe operar el motor de generación de horarios. Su cumplimiento garantiza que el sistema no solo sea funcional, sino también coherente con la realidad académica de la institución, impidiendo inconsistencias logísticas que comprometan el proceso de enseñanza-aprendizaje.
+3.3.1 Distribución de las asignaturas y franjas horarias.
+      * RD - 01: Cada asignatura debe impartirse en un número determinado de sesiones semanales y con una duración fija por sesión, respetando la estructura definida en el modelo académico.
+3.3.2 Profesores
+      * RD - 05: Ningún profesor debe ser capaz de impartir dos asignaturas al mismo tiempo
+      * RD - 06: Un profesor debe ser capaz de impartir asignaturas en distintos cursos y titulaciones, pero se debe respetar su disponibilidad horaria.
+      * RD - 07: Cada asignatura es impartida por un único profesor
+      * RD - 08: Las clases deben asignarse únicamente dentro de las franjas horarias previamente definidas como disponibles por cada profesor
+3.3.3. Estudiantes
+      * RD - 08: El sistema debe garantizar la exclusión mutua temporal de las sesiones lectivas. Un estudiante no puede estar matriculado en dos asignaturas que se impartan en el mismo bloque horario.Las asignaturas compartidas entre titulaciones deben ser asignadas a un horario único coincidente en las titulaciones involucradas
+      * RD - 09: Dada la posibilidad de que los estudiantes cursen asignaturas de distintos años o titulaciones, el motor debe priorizar la detección de solapamientos "ínter-niveles". Aunque la prioridad sea evitarlos, el sistema debe ser capaz de identificar estos conflictos de forma proactiva para informar al estudiante o al administrador.
+      * RD - 10: Cualquier asignatura impartida en más de una titulación debe poseer un identificador único global de horario. Esto obliga a que el sistema bloquee el mismo slot temporal en todas las titulaciones vinculadas, garantizando que el estudiante pueda asistir a la clase sin importar el plan de estudios al que pertenezca.
+3.3.4. Aulas y recursos
+      * RD - 11: Cada asignatura se imparte en un aula específica, pero la disponibilidad de aulas no es el principal factor limitante.
+      * RD - 12: No se permiten superposiciones de horarios en el mismo aula para distintas asignaturas
+3.3.5. Bloques y secuencias
+      * : Se deben evitar horarios fragmentados que generen huecos innecesarios entre clases.
+      * RD - 14: Se deben intentar conectar clases consecutivas para el mismo grupo y RD - 13profesor cuando sea posible, evitando excesiva dispersión horaria.
+3.3.6. Fechas y planificación
+      * RD - 15: El horario debe estar definido antes del proceso de matriculación.
+      * RD - 16: Los cambios posteriores deben ser mínimos, para evitar conflictos y sobrecarga administrativa.
+3.3.7. Titulaciones y cursos
+      * RD - 17: El motor de generación de horarios debe ajustarse estrictamente a los marcos temporales y bloques horarios predefinidos por la UCJC. El sistema no podrá proponer sesiones fuera de los periodos lectivos autorizados por la institución.
+      * RD - 18: En caso del último año (En los grados individuales), las asignaturas se distribuyen por la tarde.
+      * RD - 18.1: A diferencia de los grados individuales, las titulaciones de Doble Grado permite una distribución híbrida de la carga lectiva, pudiendo programar sesiones tanto en la franja de mañana como en la de tarde, según las necesidades de coordinación.
+________________
+4.0 Clasificación de Requisitos.
+Esta estructura organiza los requisitos que se han analizado bajo la metodología MoSCoW, permitiendo a los interesados visualizar claramente el alcance del Producto Mínimo Viable (MVP) frente a las evoluciones planificadas para el futuro. 
+
+
+Categoría
+	Prioridad
+	Objetivo Principal
+	Requisitos Funcionales Involucrados
+	Requisitos No Funcionales Involucrados
+	Must Have
+	Requisitos imprescindibles
+	Operatividad core y validación de reglas del horario.
+	RF-01, RF-02, RF-02.1, RF-04, RF-05, RF-05.1, RF-07, RF-08.1, RF-11.
+	RNF-04,RNF-05,
+RNF-07, RNF-17, RNF-03, RNF - 09, RNF-14, RNF-16, RNF-17 
+	Should Have
+	Requisitos importantes
+	Usabilidad, reporting y eficiencia operativa.
+	RF-03, RF-03.1, RF-08, RF-09, RF-10,RF-12,RF-14.
+	RNF-01, RNF-02, RNF-06, RNF-08.1, RNF-12, RNF-18, RNF-19
+	Could Have
+	Requisitos deseables
+	Comunicación proactiva e integración ecosistémica.
+	RF-06,RF-08,RF-13
+	RNF-08, RNF-10, RNF-15
+	Won’t Have
+	Requisitos que no se deben implementar por el momento 
+	Escalabilidad masiva y funciones de gestión avanzada.
+	RF-12.3
+	RNF-11
+	
+
+________________
+4.1 Must Have
+         * RF - 01: El sistema debe permitir al personal administrativo gestionar el ciclo completo de horarios (creación, edición y borrado) segmentando por titulación, curso y año académico.
+         * RF - 02: Se debe implementar un motor de reglas que valide, en tiempo real, la disponibilidad del profesorado contra la carga asignada, impidiendo la programación de sesiones simultáneas para un mismo docente (Hard Constraints).
+         * RF - 02.1: El motor de reglas debe garantizar, mediante un reporte de auditoría, que cada curso académico cumpla estrictamente con el total de horas lectivas requeridas por el plan de estudios antes de permitir su aprobación definitiva.
+         * RF - 04: El sistema debe incluir un estado de "Workflow" para los horarios generados (Borrador → Revisión → Aprobado/Rechazado). Este proceso debe requerir la validación formal de un usuario con rol de Decanato o Dirección Académica.
+         * RF - 05: El sistema debe proporcionar una interfaz de configuración dinámica para definir el marco temporal académico. Esta herramienta debe permitir la gestión de: sesiones lectivas, franjas horarias personalizadas y días lectivos, adaptándose a la normativa específica de cada centro.
+         * RF - 05.1: Los parámetros definidos en esta configuración actuarán como reglas de negocio base para el motor de generación de horarios, garantizando que el sistema sea adaptable a distintos planes de estudio y calendarios institucionales sin requerir cambios en el código fuente.
+         * RF - 07: Una vez generado el horario por el motor de reglas, el sistema debe habilitar una interfaz de edición manual para que el perfil de Dirección realice ajustes excepcionales antes de pasar al estado de 'Revisión'.
+         * RF - 08.1: Los profesores podrán marcar franjas de 'disponibilidad preferente' y 'bloqueos de indisponibilidad', los cuales serán tomados en cuenta por el motor de generación automática de horarios.
+         * RF - 11: El sistema debe proporcionar una interfaz de consulta avanzada que permita a los estudiantes visualizar su horario académico completo. La herramienta deberá soportar filtros multinivel para recuperar la información, garantizando que los datos mostrados correspondan únicamente a las asignaturas matriculadas del usuario.
+         * RNF-03: El sistema debe mantener la integridad y los tiempos de respuesta definidos (RNF-02) bajo una concurrencia de hasta 500 usuarios conectados simultáneamente, soportando picos de tráfico sin degradación del rendimiento o errores de conexión (HTTP 5xx).
+         * RNF-04: El sistema debe implementar un mecanismo de autenticación robusta que valide la identidad del usuario mediante credenciales cifradas (usuario y contraseña).
+         * RNF-05: El sistema debe garantizar la confidencialidad absoluta de la Información de Identificación Personal (PII) de profesores y estudiantes, cumpliendo estrictamente con el RGPD.
+         * RNF-07: El sistema debe gestionar los permisos mediante un modelo de Control de Acceso Basado en Roles (RBAC).
+         * RNF - 09: El sistema debe implementar un sistema de notificaciones basado en una jerarquía semántica (informativa, advertencia, error y éxito), utilizando un lenguaje natural y libre de tecnicismos que permita al usuario identificar la causa del evento y la acción correctiva necesaria.
+         * RNF-14: El sistema debe implementar un servicio centralizado de registros (logs) que capture eventos críticos, errores de ejecución, advertencias y actividades de acceso. 
+         * RNF-16: El sistema debe emplear un diseño basado en configuración (no hardcoded) que permita la adición de nuevas titulaciones, modificar los campos de la duración de las asignaturas o la integración de asignaturas compartidas entre departamentos.
+         * RNF-17: El sistema debe garantizar una disponibilidad de servicio del 99,5% mensual.
+         * Restricciones de Dominio (Todas): Todas las reglas de negocio descritas en la sección 3.3 se consideran de cumplimiento obligatorio para la validez del motor de horarios.
+4.2 Should Have
+         * RF - 03: El sistema debe generar informes dinámicos filtrados por titulación, curso, asignatura o profesorado.
+         * RF - 03.1: Los informes deben ser exportables a PDF (estándar de visualización) y Excel (estándar de manipulación de datos).
+         * RF - 08: El sistema debe permitir que el profesorado gestione su disponibilidad horaria mediante una interfaz intuitiva.
+         * RF - 09: El sistema debe proporcionar al profesorado una vista personalizada de su carga docente, permitiendo la consulta centralizada de todas las sesiones, asignaturas y grupos asignados.
+         * RF - 10: El sistema debe implementar un motor de monitorización que notifique automáticamente al profesor sobre cualquier alteración en su programación académica.
+         * RF - 12: El sistema debe implementar un motor de alertas automáticas para notificar a los estudiantes sobre cambios relevantes en su carga lectiva.
+         * RF - 14: El sistema debe incluir un motor de validación que analice la carga lectiva del estudiante y generar alertas automáticas ante conflictos horarios o de solapamiento derivados de la matriculación en asignaturas de diferentes cursos o niveles académicos.
+         * RNF-01: Completar la generación de horarios en un tiempo inferior a 300 segundos.
+         * RNF-02: La interfaz debe responder a las consultas de horarios realizadas por estudiantes o profesores en un tiempo inferior a 2 segundos, medido desde la emisión de la solicitud HTTP hasta la renderización completa del componente visual en el cliente (Time to Interactive).
+         * RNF-06: El sistema debe integrar un módulo de auditoría (logs) que registre de forma persistente e inalterable cualquier modificación.
+         * RNF - 08.1: La interfaz debe alinearse con la identidad corporativa de la Universidad Camilo José Cela.
+         * RNF-12: El sistema debe garantizar la interoperabilidad con los ecosistemas de software de la UCJC mediante APIs RESTful.
+         * RNF-18 / RNF-19: Copias de seguridad diarias y Plan de Recuperación ante Desastres.
+________________
+
+
+4.3 Could Have
+         * RF - 06: El sistema debe permitir la vinculación de profesores titulares a asignaturas específicas y el registro de perfiles suplentes categorizados por área de conocimiento.
+         * RF - 08.2: Cada actualización de disponibilidad debe quedar registrada en el historial del profesor para auditoría.
+         * RF - 13: El sistema debe identificar y mostrar de forma clara aquellas asignaturas que son compartidas entre diferentes titulaciones (asignaturas transversales) con un indicador visual.
+         * RNF - 08: La interfaz debe ser intuitiva para cualquier usuario, permitiendo que un usuario nuevo pueda generar o consultar horarios sin necesidad de formación previa.
+         * RNF - 10: Implementar una arquitectura de información plana que permita ejecutar tareas críticas mediante un recorrido máximo de 5 acciones.
+         * RNF-15: La arquitectura del sistema debe estar diseñada para ser escalable linealmente.
+________________
+
+
+4.4 Won’t Have
+
+
+         * RF - 12.3 (Opcional): El envío de mensajes mediante el correo electrónico corporativo (se priorizan las notificaciones in-app).
+         * RNF-11: Aunque es un requisito de compatibilidad, las versiones específicas de navegadores del año 2026 (como Chrome v145.X) quedan fuera del alcance del desarrollo inicial actual si el entorno de ejecución actual es previo a esa fecha.
+________________
+
+
+5.0 Anexo
+5.1 Bibliografía
+Las partes añadidas en este documento, considerando las versiones de Eddyson y Unai, son las siguientes:
+5.1.1 Identificación de los Interesados del Proyecto:
+Eddyson: 
+         1. Decano (2): Encargado de la generación técnica de los cuadrantes horarios, asegurando la coherencia global del calendario académico. 
+         2. Profesorado (3): Es el usuario final del sistema
+         3. Profesorado (5): Si no se sabe su disponibilidad horaria, el sistema no puede operar de manera eficiente
+         4. Alumnado (6): Se benefician de manera indirecta, asisten a las clases generadas
+         5. Alumnado (7): No introduce datos, pero su experiencia se ve afectada por la calidad del horario.
+Unai:
+         1. Decano (3): Responsable de administrar la distribución de las asignaturas y de definir la duración específica de las sesiones lectivas dentro del marco horario establecido. 
+         2. Profesorado (3): Es el usuario final del sistema
+         3. Departamento IT (7): Se aseguran de la correcta integración a MyUCJC.
+5.1.2 Requisitos Funcionales
+Eddyson:
+         1. RF - 06: El sistema debe permitir la vinculación de profesores titulares a asignaturas específicas y el registro de perfiles suplentes categorizados por área de conocimiento, asegurando la cobertura en escenarios de contingencia.
+         2. RF - 02.1:  El motor de reglas debe garantizar, mediante un reporte de auditoría, que cada curso académico cumpla estrictamente con el total de horas lectivas requeridas por el plan de estudios antes de permitir su aprobación definitiva.
+________________
+5.1.2 Requisitos No Funcionales
+Eddyson:
+         1. RNF - 10: Se debe implementar una arquitectura de información plana que permita al usuario ejecutar tareas críticas mediante un recorrido máximo de 5 acciones, reduciendo la carga cognitiva y el tiempo de respuesta operativo.
+Unai:
+         1. RNF - 11.2: Además, este diseño debe garantizar que las actualizaciones, la corrección de errores y la incorporación de nuevas funcionalidades se realicen de forma aislada, minimizando el impacto en el resto del ecosistema y facilitando la labor del equipo de TI.
+5.1.3 Restricciones de Dominio 
+Unai:
+         * RD - 01 Cada asignatura debe impartirse en un número determinado de sesiones semanales y con una duración fija por sesión, respetando la estructura definida en el modelo académico.
+         * RD - 08: Las clases deben asignarse únicamente dentro de las franjas horarias previamente definidas como disponibles por cada profesor.
+________________
+5.2 Tabla Requisitos Funcionales
+
+
+ID
+	Nombre / Descripción
+	Alcance
+	RF-01
+	Gestión de ciclo completo de horarios
+	Administrativo
+	RF-02
+	Motor de reglas para validación de disponibilidad (Hard Constraints)
+	Sistema / Motor
+	RF-02.1
+	Auditoría de cumplimiento de horas lectivas totales
+	Sistema / Motor
+	RF-03
+	Generación de informes dinámicos filtrados
+	Administrativo
+	RF-03.1
+	Exportación de informes a PDF y Excel
+	Administrativo
+	RF-04
+	Workflow de estados (Borrador → Revisión → Aprobado/Rechazado)
+	Gestión / Roles
+	RF-05
+	Configuración dinámica de marco temporal y franjas
+	Administrativo
+	RF-05.1
+	Parámetros de configuración como reglas de negocio base
+	Sistema / Motor
+	RF-06
+	Vinculación de profesores titulares y suplentes por área
+	Administrativo
+	RF-07
+	Interfaz de edición manual para ajustes excepcionales
+	Dirección
+	RF-08
+	Gestión de disponibilidad horaria del profesorado
+	Profesorado
+	RF-08.1
+	Marcado de disponibilidad preferente y bloqueos
+	Profesorado
+	RF-08.2
+	Historial de actualizaciones de disponibilidad para auditoría
+	Auditoría
+	RF-09
+	Vista personalizada de carga docente
+	Profesorado
+	RF-09.1
+	Listado detallado de asignaturas (código, nombre, aula, franja)
+	Profesorado
+	RF-09.2
+	Identificación de grupo/subgrupo de estudiantes por sesión
+	Profesorado
+	RF-10
+	Motor de monitorización y notificaciones de cambios
+	Profesorado
+	RF-10.1
+	Alertas in-app sobre conflictos sobrevenidos o cambios
+	Profesorado
+	RF-11
+	Consulta avanzada de horario con filtros multinivel
+	Alumnado
+	RF-11.1
+	Filtrado por nivel académico o año
+	Alumnado
+	RF-11.2
+	Visualización por plan de estudios o grado
+	Alumnado
+	RF-11.3
+	Segmentación por grupo de clase (teoría, prácticas, laboratorio)
+	Alumnado
+	RF-12
+	Motor de alertas automáticas por cambios en carga lectiva
+	Alumnado
+	RF-12.1
+	Detección de conflictos en asignaturas optativas
+	Alumnado
+	RF-12.2
+	Notificación de cambios en aula, horario o profesor
+	Alumnado
+	RF-12.3
+	Entrega vía web (in-app) y correo corporativo (opcional)
+	Alumnado
+	RF-13
+	Identificador visual de asignaturas transversales
+	Alumnado
+	RF-14
+	Motor de validación de carga y conflictos ínter-niveles
+	Alumnado
+	RF-14.1
+	Alerta inmediata en el momento de la matriculación
+	Alumnado
+	________________
+
+
+5.3 Tabla Requisitos No Funcionales
+
+
+ID
+	Categoría
+	Requisito / Estándar
+	RNF-01
+	Rendimiento
+	Generación de horarios en menos de 300 segundos
+	RNF-02
+	Rendimiento
+	Respuesta de interfaz (TTI) inferior a 2 segundos
+	RNF-03
+	Rendimiento
+	Soporte de 500 usuarios concurrentes sin degradación
+	RNF-04
+	Seguridad
+	Autenticación robusta con credenciales cifradas
+	RNF-05
+	Seguridad/Privacidad
+	Cumplimiento RGPD (AES-256 en reposo y gestión de consentimiento)
+	RNF-06
+	Seguridad
+	Módulo de auditoría (logs) inalterable para modificaciones
+	RNF-07
+	Seguridad
+	Control de acceso basado en roles (RBAC)
+	RNF-08
+	Usabilidad
+	Interfaz intuitiva sin necesidad de formación previa
+	RNF-08.1
+	Usabilidad
+	Alineación con identidad corporativa UCJC (colores/tipografía)
+	RNF-09
+	Usabilidad
+	Sistema de notificaciones con jerarquía semántica y lenguaje natural
+	RNF-10
+	Usabilidad
+	Arquitectura plana (tareas críticas en máximo 5 acciones)
+	RNF-11
+	Compatibilidad
+	Navegadores vigentes al 15/03/2026 (Chrome, Edge, Safari, Firefox, Opera)
+	RNF-12
+	Compatibilidad
+	Interoperabilidad mediante APIs RESTful (JSON/XML) y SQL
+	RNF-13
+	Escalabilidad
+	Arquitectura basada en patrón Modelo-Vista-Template (MVT)
+	RNF-13.1
+	Disponibilidad
+	Despliegue de alta disponibilidad (Blue-Green / Rolling Updates)
+	RNF-13.2
+	Mantenibilidad
+	Actualizaciones aisladas para minimizar impacto en el ecosistema
+	RNF-14
+	Mantenibilidad
+	Servicio centralizado de logs con severidades y IDs únicos
+	RNF-15
+	Escalabilidad
+	Diseño escalable para crecimiento lineal de usuarios y datos
+	RNF-15.1
+	Escalabilidad
+	Desacoplamiento de almacenamiento y lógica de negocio
+	RNF-16
+	Mantenibilidad
+	Diseño basado en configuración (no hardcoded)
+	RNF-17
+	Confiabilidad
+	Disponibilidad mensual del 99,5%
+	RNF-18
+	Confiabilidad
+	Backups diarios automatizados (off-site / inmutables)
+	RNF-19
+	Confiabilidad
+	Plan de Recuperación ante Desastres (RTO < 4h, RPO < 24h)
+	
+
+5.4 Consideraciones Técnicas
+         * Las tablas han sido generadas con Inteligencia Artificial en base al número de requisitos tomados
+         * La aplicación debe implementar un sistema de reglas y restricciones para evitar conflictos entre profesorado y estudiantes
+         * La aplicación debe implementar un módulo de configuración para definir titulaciones, cursos, asignaturas, profesores y bloques de clases
+         * La aplicación debe tener una interfaz intuitiva y sencilla para nuevos usuarios, o usuarios sin experiencia en el manejo de gestión de horarios.
+         * La aplicación debe implementar un motor de generación automático de horarios que considere disponibilidad, coincidencias y restricciones
+         * La aplicación debe proporcionar mecanismos de validación y prueba de horarios antes de su aprobación final.
+         * La aplicación debe tener soporte para poder integrarse con el ecosistema tecnológico de la universidad.
+         * La aplicación debe contar con documentación sobre el sistema, incluyendo la arquitectura, código, APIs y manuales de usuario.

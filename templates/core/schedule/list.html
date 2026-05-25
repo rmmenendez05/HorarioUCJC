@@ -1,0 +1,147 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block title %}Horarios · Gestor Horarios UCJC{% endblock %}
+
+{% block page_title %}Gestión de horarios{% endblock %}
+{% block page_subtitle %}RF-01 — Listado y control de horarios por titulación{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'schedule:horario_create' %}"
+   class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+  </svg>
+  Nuevo horario
+</a>
+{% endblock %}
+
+{% block page_content %}
+
+<!-- Contadores de estado -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+    <span class="w-2.5 h-2.5 rounded-full bg-zinc-400 shrink-0"></span>
+    <div><div class="text-xs text-zinc-500">Borrador</div><div class="text-xl font-bold text-white">{{ contadores.borrador }}</div></div>
+  </div>
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
+    <div><div class="text-xs text-zinc-500">En revisión</div><div class="text-xl font-bold text-white">{{ contadores.revision }}</div></div>
+  </div>
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+    <span class="w-2.5 h-2.5 rounded-full bg-green-400 shrink-0"></span>
+    <div><div class="text-xs text-zinc-500">Aprobados</div><div class="text-xl font-bold text-white">{{ contadores.aprobado }}</div></div>
+  </div>
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+    <span class="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0"></span>
+    <div><div class="text-xs text-zinc-500">Rechazados</div><div class="text-xl font-bold text-white">{{ contadores.rechazado }}</div></div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-end">
+  <form method="get" class="flex flex-wrap gap-3 items-end">
+    <div>
+      <label class="block text-xs text-zinc-500 mb-1">Estado</label>
+      <select name="estado">
+        <option value="">Todos</option>
+        {% for val, label in estados %}
+        <option value="{{ val }}" {% if estado_filter == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs text-zinc-500 mb-1">Titulación</label>
+      <select name="titulacion">
+        <option value="">Todas</option>
+        {% for t in titulaciones %}
+        <option value="{{ t.pk }}" {% if titulacion_filter == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition-colors">Filtrar</button>
+    <a href="{% url 'schedule:horarios_list' %}" class="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors">Limpiar</a>
+  </form>
+</div>
+
+<!-- Tabla -->
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+  {% if horarios %}
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-zinc-800 text-left">
+        <th class="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Titulación</th>
+        <th class="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Nivel</th>
+        <th class="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Curso</th>
+        <th class="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Estado</th>
+        <th class="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Creado por</th>
+        <th class="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Sesiones</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-zinc-800">
+      {% for h in horarios %}
+      <tr class="hover:bg-zinc-800/40 transition-colors">
+        <td class="px-4 py-3 font-medium text-white">{{ h.titulacion.nombre }}</td>
+        <td class="px-4 py-3 text-zinc-300">{{ h.nivel }}</td>
+        <td class="px-4 py-3 text-zinc-400">{{ h.curso_academico }}</td>
+        <td class="px-4 py-3">
+          {% if h.estado == 'BORRADOR' %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>Borrador
+          </span>
+          {% elif h.estado == 'REVISION' %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-900/30 text-amber-300 border border-amber-700/40">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>En revisión
+          </span>
+          {% elif h.estado == 'APROBADO' %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-900/30 text-green-300 border border-green-700/40">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>Aprobado
+          </span>
+          {% elif h.estado == 'RECHAZADO' %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-900/30 text-red-300 border border-red-700/40">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Rechazado
+          </span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-zinc-400">{{ h.creado_por.get_full_name|default:h.creado_por.email }}</td>
+        <td class="px-4 py-3 text-zinc-400">
+          {% if h.num_sesiones %}
+            <span class="font-semibold text-white">{{ h.num_sesiones }}</span>
+          {% else %}
+            <span class="text-zinc-600">—</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-right">
+          <div class="flex items-center justify-end gap-3">
+            <a href="{% url 'schedule:horario_detalle' h.pk %}"
+               class="text-xs font-medium text-red-400 hover:text-red-300 transition-colors">Ver detalle</a>
+            <form method="post" action="{% url 'schedule:horario_eliminar' h.pk %}"
+                  onsubmit="return confirm('¿Eliminar el horario «{{ h }}»? Esta acción no se puede deshacer.')">
+              {% csrf_token %}
+              <button type="submit"
+                      class="text-zinc-600 hover:text-red-400 transition-colors p-1 rounded"
+                      title="Eliminar horario">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="text-center py-16">
+    <svg class="w-12 h-12 text-zinc-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+    </svg>
+    <p class="text-zinc-500 text-sm">No hay horarios que coincidan con los filtros.</p>
+    <a href="{% url 'schedule:horario_create' %}" class="mt-3 inline-block text-red-400 hover:text-red-300 text-sm font-medium">Crear el primero</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
