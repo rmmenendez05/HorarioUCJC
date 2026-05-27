@@ -33,7 +33,8 @@
 <!-- Tabla de auditoría -->
 <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
   {% if logs %}
-  <table class="w-full text-xs">
+  <div class="overflow-x-auto">
+  <table class="w-full min-w-[700px] text-xs">
     <thead>
       <tr class="border-b border-zinc-800">
         <th class="px-4 py-3 text-left font-semibold text-zinc-500 uppercase tracking-wider">Timestamp</th>
@@ -74,6 +75,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% else %}
   <div class="py-12 text-center text-zinc-500 text-sm">No hay entradas de auditoría.</div>
   {% endif %}
