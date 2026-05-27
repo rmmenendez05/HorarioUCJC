@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 ]
 
 TAILWIND_APP_NAME='theme'
+TAILWIND_DEV_MODE = False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

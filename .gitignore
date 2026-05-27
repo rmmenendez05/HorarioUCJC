@@ -2,9 +2,12 @@
 .env
 .env.local
 .env.*.local
-*.ini
+!.env.example
 secrets.json
 credentials.json
+client_secret*.json
+token.json
+local_settings.py
 
 # Python cache
 __pycache__/
@@ -21,9 +24,29 @@ ENV/
 
 # Django
 *.log
+logs/
 db.sqlite3
 db.sqlite3-journal
 media/
+# Carpeta generada por collectstatic (ajusta si STATIC_ROOT es distinto)
+staticfiles/
+static/collected/
+# Aseguramos que el CSS compilado de Tailwind SÍ se incluye
+!theme/static/css/dist/
+
+# Tailwind / Node
+node_modules/
+npm-debug.log*
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Distribución
+dist/
+build/
+*.egg-info/
+*.whl
 
 # Pytest / coverage
 .pytest_cache/
