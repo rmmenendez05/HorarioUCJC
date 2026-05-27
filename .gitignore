@@ -67,3 +67,6 @@ htmlcov/
 .DS_Store
 Thumbs.db
 .claude
+
+# Ignorar los módulos de node del theme de django-tailwind
+**/theme/static_src/node_modules/
