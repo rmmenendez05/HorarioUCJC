@@ -42,8 +42,7 @@ npm-debug.log*
 celerybeat-schedule
 celerybeat.pid
 
-# Distribución
-dist/
+# Distribución (excluimos dist/ de node/python pero NO el CSS compilado de Tailwind)
 build/
 *.egg-info/
 *.whl
