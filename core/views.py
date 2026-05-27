@@ -116,6 +116,7 @@ def alumno_update_grado(request, pk):
 
 @decano_required
 def user_update_rol(request, pk):
+    from login.models import PerfilDecano, PerfilProfesor
     if request.method != 'POST':
         return redirect('user_management')
     nuevo_rol = request.POST.get('rol', '')
@@ -127,6 +128,17 @@ def user_update_rol(request, pk):
         if usuario != request.user:
             usuario.rol = nuevo_rol
             usuario.save(update_fields=['rol'])
+            if nuevo_rol == 'DECANO':
+                PerfilDecano.objects.get_or_create(usuario=usuario)
+            elif nuevo_rol == 'PROFESOR':
+                PerfilProfesor.objects.get_or_create(
+                    usuario=usuario,
+                    defaults={'area_conocimiento': ''},
+                )
     except Usuario.DoesNotExist:
         pass
+    messages.success(
+        request,
+        f'Rol actualizado correctamente.',
+    )
     return redirect('user_management')
